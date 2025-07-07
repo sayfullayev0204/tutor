@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Tutor Boshqaruv Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 fw-bold mb-1"><i class="fas fa-tachometer-alt me-2"></i>Tutor Boshqaruv Paneli</h1>
+            <p class="text-muted">Xush kelibsiz, {{ user.get_full_name }}!</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="number">{{ total_students }}</div>
+                <div class="label">Jami talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div class="number">{{ male_students }}</div>
+                <div class="label">O'g'il bolalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card info">
+                <div class="icon">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div class="number">{{ female_students }}</div>
+                <div class="label">Qiz bolalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="number">{{ renting_students.count }}</div>
+                <div class="label">Ijara xonadonida</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Groups Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Biriktirilgan guruhlar</h5>
+                </div>
+                <div class="card-body">
+                    {% if groups %}
+                        <div class="row">
+                            {% for group in groups %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border">
+                                        <div class="card-body">
+                                            <h6 class="card-title fw-bold">{{ group.name }}</h6>
+                                            <p class="card-text text-muted mb-2">{{ group.faculty.name }}</p>
+                                            <div class="row text-center">
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-primary">{{ group.students.count }}</div>
+                                                    <small class="text-muted">Talabalar</small>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-success">{{ group.male_students_count }}</div>
+                                                    <small class="text-muted">Erkak</small>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-info">{{ group.female_students_count }}</div>
+                                                    <small class="text-muted">Ayol</small>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <a href="{% url 'group_detail' group.id %}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Ko'rish
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Sizga hech qanday guruh biriktirilmagan</h5>
+                            <p class="text-muted">Administrator bilan bog'laning</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Renting Students Table -->
+            <div class="card mt-4">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-home me-2"></i>Ijara xonadonida yashovchi talabalar</h5>
+                </div>
+                <div class="card-body">
+                    {% if renting_students %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>F.I.O</th>
+                                        <th>Guruh</th>
+                                        <th>Manzil</th>
+                                        <th>Amallar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in renting_students %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                        <span class="text-white fw-bold">{{ student.first_name|first }}{{ student.last_name|first }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">{{ student.full_name }}</div>
+                                                        <small class="text-muted">{{ student.get_gender_display }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ student.group.name }}</td>
+                                            <td>{{ student.address|truncatechars:30 }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'create_inspection' student.id %}" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-clipboard-check"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-home fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">Ijara xonadonida yashovchi talabalar yo'q</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="quick-actions mb-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-bolt me-2"></i>Tezkor havolalar</h6>
+                <a href="{% url 'student_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-user-graduate"></i>
+                    Biriktirilgan talabalar
+                </a>
+                <a href="{% url 'renting_students' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-home"></i>
+                    Ijara xonadonida yashovchilar
+                </a>
+                <a href="{% url 'ttj_students' %}" class="btn btn-outline-success">
+                    <i class="fas fa-building"></i>
+                    TTJ da yashovchilar
+                </a>
+                <a href="{% url 'yetim_talabalar' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-heart"></i>
+                    Yetim talabalar
+                </a>
+                <a href="{% url 'nogironligi_bor' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-wheelchair"></i>
+                    Nogironligi borlar
+                </a>
+            </div>
+            
+            <!-- Recent Inspections -->
+            <div class="card">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-clock me-2"></i>So'nggi tekshirishlar</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_inspections %}
+                        {% for inspection in recent_inspections %}
+                            <div class="d-flex align-items-center p-3 border-bottom">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">{{ inspection.student.full_name }}</div>
+                                    <small class="text-muted">{{ inspection.inspection_date|date:"d.m.Y H:i" }}</small>
+                                </div>
+                                <div>
+                                    {% if inspection.condition == 'good' %}
+                                        <span class="condition-badge condition-good">Yaxshi</span>
+                                    {% elif inspection.condition == 'average' %}
+                                        <span class="condition-badge condition-average">O'rtacha</span>
+                                    {% else %}
+                                        <span class="condition-badge condition-poor">Yomon</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="p-3">
+                            <a href="{% url 'inspection_list' %}" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-list me-2"></i>Barcha tekshirishlar
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-list fa-2x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Tekshirishlar yo'q</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

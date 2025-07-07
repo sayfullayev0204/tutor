@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Tekshirish ma'lumotlari{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'inspection_list' %}">Tekshirishlar</a></li>
+                    <li class="breadcrumb-item active">Tekshirish ma'lumotlari</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold">Yashash sharoiti tekshiruvi</h1>
+            <h5 class="text-muted">{{ inspection.student.full_name }} - {{ inspection.inspection_date|date:"d.m.Y H:i" }}</h5>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'student_detail' inspection.student.id %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-user me-2"></i>Talaba
+            </a>
+            {% if user.is_dean and inspection.status == 'pending' %}
+                <a href="{% url 'review_inspection' inspection.id %}" class="btn btn-primary">
+                    <i class="fas fa-check-circle me-2"></i>Ko'rib chiqish
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8 mb-4">
+            <!-- Inspection Info -->
+            <div class="card mb-4">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Tekshirish ma'lumotlari</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th class="text-muted">Talaba:</th>
+                                    <td>{{ inspection.student.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Guruh:</th>
+                                    <td>{{ inspection.student.group.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Fakultet:</th>
+                                    <td>{{ inspection.student.group.faculty.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Manzil:</th>
+                                    <td>{{ inspection.student.address|default:"Kiritilmagan" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th class="text-muted">Tekshiruvchi:</th>
+                                    <td>{{ inspection.inspector.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Sana:</th>
+                                    <td>{{ inspection.inspection_date|date:"d.m.Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Holat:</th>
+                                    <td>
+                                        {% if inspection.condition == 'good' %}
+                                            <span class="condition-badge condition-good">Yaxshi</span>
+                                        {% elif inspection.condition == 'average' %}
+                                            <span class="condition-badge condition-average">O'rtacha</span>
+                                        {% else %}
+                                            <span class="condition-badge condition-poor">Yomon</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Status:</th>
+                                    <td>
+                                        {% if inspection.status == 'pending' %}
+                                            <span class="badge bg-warning">Kutilmoqda</span>
+                                        {% elif inspection.status == 'approved' %}
+                                            <span class="badge bg-success">Tasdiqlangan</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rad etilgan</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inspection Comment -->
+            <div class="card mb-4">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-comment me-2"></i>Tekshiruvchi izohi</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ inspection.comment|default:"Izoh kiritilmagan" }}</p>
+                </div>
+            </div>
+            
+            <!-- Dean Review (if exists) -->
+            {% if inspection.status != 'pending' %}
+                <div class="card mb-4">
+                    <div class="card-header {% if inspection.status == 'approved' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                        <h6 class="mb-0"><i class="fas fa-user-tie me-2"></i>Dekan qaydlari</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="text-muted">Ko'rib chiquvchi:</th>
+                                        <td>{{ inspection.reviewed_by.get_full_name|default:"Kiritilmagan" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">Sana:</th>
+                                        <td>{{ inspection.reviewed_at|date:"d.m.Y H:i"|default:"-" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="text-muted">Qaror:</th>
+                                        <td>
+                                            {% if inspection.status == 'approved' %}
+                                                <span class="badge bg-success fs-6">Tasdiqlangan</span>
+                                            {% else %}
+                                                <span class="badge bg-danger fs-6">Rad etilgan</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        {% if inspection.dean_comment %}
+                            <div class="mt-3">
+                                <strong>Dekan izohi:</strong>
+                                <p class="mt-2 mb-0">{{ inspection.dean_comment }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Photos Gallery -->
+            {% if inspection.photos.all %}
+                <div class="card">
+                    <div class="card-header text-white">
+                        <h6 class="mb-0"><i class="fas fa-images me-2"></i>Tekshirish rasmlari ({{ inspection.photos.count }} ta)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for photo in inspection.photos.all %}
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="position-relative">
+                                            {% if photo.photo %}
+                                                <img src="{{ photo.photo.url }}" 
+                                                     class="card-img-top inspection-photo" 
+                                                     style="height: 250px; object-fit: cover; cursor: pointer; width: 100%;" 
+                                                     alt="Tekshirish rasmi"
+                                                     data-bs-toggle="modal" 
+                                                     data-bs-target="#photoModal{{ forloop.counter }}"
+                                                     data-fullscreen-url="{{ photo.photo.url }}">
+                                            {% else %}
+                                                <img src="https://via.placeholder.com/250" 
+                                                     class="card-img-top" 
+                                                     style="height: 250px; object-fit: cover;" 
+                                                     alt="Rasm mavjud emas">
+                                            {% endif %}
+                                            <div class="position-absolute top-0 end-0 m-2">
+                                                <span class="badge bg-dark bg-opacity-75">{{ forloop.counter }}</span>
+                                            </div>
+                                        </div>
+                                        {% if photo.caption %}
+                                            <div class="card-body p-3">
+                                                <p class="card-text small text-muted mb-0">{{ photo.caption }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Single Photo Modal -->
+                <div class="modal fade" id="photoGalleryModal" tabindex="-1" aria-labelledby="photoGalleryModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="photoGalleryModalLabel">Rasm</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img id="modalImage" src="" class="img-fluid" style="max-height: 70vh; object-fit: contain;" alt="Tekshirish rasmi">
+                                <p id="modalCaption" class="mt-3 text-muted"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary me-auto" id="prevPhoto"><i class="fas fa-chevron-left"></i></button>
+                                <small id="modalUploadedAt" class="text-muted"></small>
+                                <button type="button" class="btn btn-secondary" id="nextPhoto"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Student Info -->
+            <div class="card mb-4">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Talaba ma'lumotlari</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if inspection.student.profile_picture %}
+                            <img src="{{ inspection.student.profile_picture.url }}" alt="{{ inspection.student.full_name }}" class="rounded-circle img-fluid mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                                <span class="text-white fw-bold fs-3">{{ inspection.student.first_name|first }}{{ inspection.student.last_name|first }}</span>
+                            </div>
+                        {% endif %}
+                        <h6 class="fw-bold">{{ inspection.student.full_name }}</h6>
+                        <p class="text-muted mb-0">{{ inspection.student.get_gender_display }}</p>
+                    </div>
+                    
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <th class="text-muted">Telefon:</th>
+                            <td>{{ inspection.student.phone_number|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Email:</th>
+                            <td>{{ inspection.student.email|default:"-" }}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'student_detail' inspection.student.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-2"></i>Batafsil ma'lumot
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Tezkor havolalar</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if user.is_dean and inspection.status == 'pending' %}
+                            <a href="{% url 'review_inspection' inspection.id %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-check me-2"></i>Ko'rib chiqish
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'inspection_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list me-2"></i>Barcha tekshirishlar
+                        </a>
+                        {% if user.is_dean %}
+                            <a href="{% url 'pending_inspections' %}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-clock me-2"></i>Kutilayotganlar
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'student_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-user-graduate me-2"></i>Talabalar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inspection-photo:hover {
+        transform: scale(1.05);
+        transition: transform 0.3s ease;
+    }
+    .modal-xl {
+        max-width: 90vw;
+    }
+    #modalImage:hover {
+        cursor: zoom-in;
+    }
+    #modalImage.zoomed {
+        transform: scale(1.5);
+        transition: transform 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const photos = [
+            {% for photo in inspection.photos.all %}
+                {
+                    url: "{{ photo.photo.url|default:'https://via.placeholder.com/250' }}",
+                    caption: "{{ photo.caption|default:''|escapejs }}",
+                    uploaded_at: "{{ photo.uploaded_at|date:'d.m.Y H:i'|default:'-' }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        let currentPhotoIndex = 0;
+        
+        function updateModal(index) {
+            const photo = photos[index];
+            document.getElementById('modalImage').src = photo.url;
+            document.getElementById('modalCaption').textContent = photo.caption || 'Izoh yo\'q';
+            document.getElementById('modalUploadedAt').textContent = 'Yuklangan: ' + photo.uploaded_at;
+            document.getElementById('photoGalleryModalLabel').textContent = `Rasm ${index + 1} / ${photos.length}`;
+            currentPhotoIndex = index;
+        }
+        
+        // Open modal on image click
+        document.querySelectorAll('.inspection-photo').forEach((img, index) => {
+            img.addEventListener('click', () => {
+                updateModal(index);
+                const modal = new bootstrap.Modal(document.getElementById('photoGalleryModal'));
+                modal.show();
+            });
+        });
+        
+        // Navigation buttons
+        document.getElementById('prevPhoto').addEventListener('click', () => {
+            if (currentPhotoIndex > 0) {
+                updateModal(currentPhotoIndex - 1);
+            }
+        });
+        
+        document.getElementById('nextPhoto').addEventListener('click', () => {
+            if (currentPhotoIndex < photos.length - 1) {
+                updateModal(currentPhotoIndex + 1);
+            }
+        });
+        
+        // Zoom on click
+        const modalImage = document.getElementById('modalImage');
+        modalImage.addEventListener('click', () => {
+            modalImage.classList.toggle('zoomed');
+        });
+    });
+</script>
+{% endblock %}

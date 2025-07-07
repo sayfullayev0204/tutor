@@ -1,0 +1,814 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Yangi tadbir yaratish{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Events CSS */
+.event-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e3e6f0;
+  border-radius: 8px;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #28a745;
+}
+
+.event-info {
+  border-left: 3px solid #e3e6f0;
+  padding-left: 0.75rem;
+}
+
+.event-description {
+  background-color: #f8f9fc;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e3e6f0;
+}
+
+.event-photos {
+  background-color: #e8f5e8;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+
+.dean-comment {
+  background-color: #fff3cd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #ffc107;
+}
+
+/* Event Form Styles */
+.event-form-container {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-radius: 20px;
+  padding: 0;
+  margin: 20px 0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.form-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  text-align: center;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+.form-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.form-subtitle {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.section-container {
+  background: white;
+  margin: 0;
+  padding: 30px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-container:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* Photo Upload */
+.photo-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.photo-upload-container {
+  position: relative;
+}
+
+.add-photo-section {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  border: 2px dashed #dee2e6;
+  border-radius: 10px;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.add-photo-section:hover {
+  border-color: #28a745;
+  background: #f0fff4;
+}
+
+.photo-upload-item {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  border: 2px dashed #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.photo-upload-item:hover {
+  border-color: #28a745;
+  background: #f0fff4;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  font-size: 0.8rem;
+}
+
+.photo-upload-item:not(:first-child) .remove-photo-btn {
+  display: flex;
+}
+
+.photo-upload-item:hover .remove-photo-btn {
+  display: flex;
+}
+
+.photo-upload-header h6 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.photo-upload-area {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.photo-input {
+  display: none;
+}
+
+.photo-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.photo-label:hover {
+  border-color: #28a745;
+  background: #f0fff4;
+}
+
+.photo-label i {
+  font-size: 2rem;
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.photo-label span {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.photo-label small {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.photo-preview {
+  display: none;
+  position: relative;
+}
+
+.photo-preview.active {
+  display: block;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #dee2e6;
+}
+
+.photo-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-comment label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.photo-comment textarea {
+  width: 100%;
+  min-height: 80px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.photo-comment textarea:focus {
+  outline: none;
+  border-color: #28a745;
+}
+
+/* Form Footer */
+.form-footer {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  padding: 30px;
+  text-align: center;
+}
+
+.submit-btn {
+  background: white;
+  color: #28a745;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.submit-btn i {
+  margin-right: 10px;
+}
+
+/* Loading state */
+.submit-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.submit-btn.loading::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid #28a745;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .event-form-container {
+    margin: 10px;
+    border-radius: 15px;
+  }
+
+  .form-header {
+    padding: 20px;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+
+  .section-container {
+    padding: 20px;
+  }
+
+  .photo-upload-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Animation */
+.event-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.photo-upload-item.new-photo {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-12">
+            <div class="event-form-container">
+                <!-- Header -->
+                <div class="form-header">
+                    <div class="header-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h2 class="form-title">Yangi tadbir yaratish</h2>
+                    <p class="form-subtitle">Tashkil etgan tadbiringiz haqida ma'lumot kiriting</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="eventForm">
+                    {% csrf_token %}
+                    
+                    <!-- Asosiy ma'lumotlar -->
+                    <div class="section-container">
+                        <h4 class="section-title">Asosiy ma'lumotlar</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="title">Tadbir nomi *</label>
+                                    <input type="text" name="title" id="title" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="category">Kategoriya *</label>
+                                    <select name="category" id="category" class="form-control" required>
+                                        <option value="">Tanlang</option>
+                                        <option value="educational">Ta'limiy</option>
+                                        <option value="cultural">Madaniy</option>
+                                        <option value="sports">Sport</option>
+                                        <option value="social">Ijtimoiy</option>
+                                        <option value="other">Boshqa</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="event_date">Tadbir sanasi *</label>
+                                    <input type="datetime-local" name="event_date" id="event_date" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="participants_count">Ishtirokchilar soni *</label>
+                                    <input type="number" name="participants_count" id="participants_count" class="form-control" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="location">O'tkazilgan joy *</label>
+                            <input type="text" name="location" id="location" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Tadbir haqida *</label>
+                            <textarea name="description" id="description" class="form-control" rows="4" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Rasmlar yuklash -->
+                    <div class="section-container">
+                        <h4 class="section-title">Tadbir rasmlari (kamida 1ta)</h4>
+                        
+                        <div class="photo-upload-container">
+                            <div class="photo-upload-grid" id="photoGrid">
+                                <!-- Birinchi rasm (majburiy) -->
+                                <div class="photo-upload-item" data-photo-index="1">
+                                    <div class="photo-upload-header">
+                                        <h6>Rasm 1</h6>
+                                    </div>
+                                    <div class="photo-upload-area">
+                                        <input type="file" name="photos" accept="image/*" class="photo-input">
+                                        <label class="photo-label">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Rasm tanlang</span>
+                                            <small>Fayl tanlanmagan</small>
+                                        </label>
+                                        <div class="photo-preview"></div>
+                                    </div>
+                                    <div class="photo-comment">
+                                        <label>Rasm izohi</label>
+                                        <textarea name="photo_captions" placeholder="Rasm haqida izoh..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="add-photo-section">
+                                <button type="button" class="btn btn-outline-success" id="addPhotoBtn">
+                                    <i class="fas fa-plus"></i> Yana rasm qo'shish
+                                </button>
+                                <small class="text-muted d-block mt-2">
+                                    Maksimal 10 ta rasm yuklash mumkin
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit button -->
+                    <div class="form-footer">
+                        <a href="{% url 'event_list' %}" class="btn btn-secondary mr-3">
+                            <i class="fas fa-arrow-left"></i> Orqaga
+                        </a>
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            <i class="fas fa-save"></i>
+                            Tadbirni saqlash
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Event Form JavaScript
+document.addEventListener("DOMContentLoaded", () => {
+  let photoCounter = 1
+  const maxPhotos = 10
+
+  // Initialize first photo
+  initializePhotoInput(1)
+
+  // Add photo button
+  document.getElementById("addPhotoBtn").addEventListener("click", addNewPhoto)
+
+  function addNewPhoto() {
+    if (photoCounter >= maxPhotos) {
+      alert(`Maksimal ${maxPhotos} ta rasm yuklash mumkin!`)
+      return
+    }
+
+    photoCounter++
+    const photoGrid = document.getElementById("photoGrid")
+
+    const newPhotoItem = document.createElement("div")
+    newPhotoItem.className = "photo-upload-item new-photo"
+    newPhotoItem.setAttribute("data-photo-index", photoCounter)
+
+    newPhotoItem.innerHTML = `
+      <button type="button" class="remove-photo-btn" onclick="removePhotoItem(${photoCounter})">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="photo-upload-header">
+        <h6>Rasm ${photoCounter}</h6>
+      </div>
+      <div class="photo-upload-area">
+        <input type="file" name="photos" accept="image/*" class="photo-input">
+        <label class="photo-label">
+          <i class="fas fa-camera"></i>
+          <span>Rasm tanlang</span>
+          <small>Fayl tanlanmagan</small>
+        </label>
+        <div class="photo-preview"></div>
+      </div>
+      <div class="photo-comment">
+        <label>Rasm izohi</label>
+        <textarea name="photo_captions" placeholder="Rasm haqida izoh..."></textarea>
+      </div>
+    `
+
+    photoGrid.appendChild(newPhotoItem)
+    initializePhotoInput(photoCounter)
+
+    // Update add button state
+    updateAddButtonState()
+  }
+
+  function initializePhotoInput(index) {
+    const photoItem = document.querySelector(`[data-photo-index="${index}"]`)
+    const input = photoItem.querySelector(".photo-input")
+
+    input.addEventListener("change", (e) => {
+      handlePhotoUpload(e, photoItem)
+    })
+  }
+
+  function handlePhotoUpload(e, photoItem) {
+    const file = e.target.files[0]
+    const label = photoItem.querySelector(".photo-label")
+    const preview = photoItem.querySelector(".photo-preview")
+
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Iltimos, faqat rasm fayllarini tanlang!")
+        e.target.value = ""
+        return
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Rasm hajmi 5MB dan oshmasligi kerak!")
+        e.target.value = ""
+        return
+      }
+
+      // Update label text
+      const fileName = file.name
+      label.querySelector("small").textContent = fileName
+      label.querySelector("span").textContent = "Fayl tanlandi"
+
+      // Show preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        preview.innerHTML = `
+          <img src="${e.target.result}" alt="Preview" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; border: 2px solid #dee2e6;">
+          <button type="button" class="photo-remove" onclick="clearPhoto(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        `
+        preview.classList.add("active")
+        label.style.display = "none"
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  // Global functions
+  window.removePhotoItem = (index) => {
+    const photoItem = document.querySelector(`[data-photo-index="${index}"]`)
+    if (photoItem && index > 1) {
+      // Don't remove first photo
+      photoItem.remove()
+      updateAddButtonState()
+      renumberPhotos()
+    }
+  }
+
+  window.clearPhoto = (button) => {
+    const photoItem = button.closest(".photo-upload-item")
+    const input = photoItem.querySelector(".photo-input")
+    const label = photoItem.querySelector(".photo-label")
+    const preview = photoItem.querySelector(".photo-preview")
+
+    // Clear input
+    input.value = ""
+
+    // Reset label
+    label.querySelector("small").textContent = "Fayl tanlanmagan"
+    label.querySelector("span").textContent = "Rasm tanlang"
+    label.style.display = "flex"
+
+    // Hide preview
+    preview.classList.remove("active")
+    preview.innerHTML = ""
+  }
+
+  function updateAddButtonState() {
+    const addBtn = document.getElementById("addPhotoBtn")
+    const currentPhotos = document.querySelectorAll(".photo-upload-item").length
+
+    if (currentPhotos >= maxPhotos) {
+      addBtn.disabled = true
+      addBtn.innerHTML = '<i class="fas fa-check"></i> Maksimal rasm soni'
+    } else {
+      addBtn.disabled = false
+      addBtn.innerHTML = '<i class="fas fa-plus"></i> Yana rasm qo\'shish'
+    }
+  }
+
+  function renumberPhotos() {
+    const photoItems = document.querySelectorAll(".photo-upload-item")
+    photoItems.forEach((item, index) => {
+      const newIndex = index + 1
+      item.setAttribute("data-photo-index", newIndex)
+      const header = item.querySelector(".photo-upload-header h6")
+      if (header) {
+        header.textContent = `Rasm ${newIndex}`
+      }
+    })
+    photoCounter = photoItems.length
+  }
+
+  // Form validation
+  const form = document.getElementById("eventForm")
+  const submitBtn = document.getElementById("submitBtn")
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault()
+
+    // Check required fields
+    const title = document.getElementById("title").value.trim()
+    const description = document.getElementById("description").value.trim()
+    const category = document.getElementById("category").value
+    const eventDate = document.getElementById("event_date").value
+    const location = document.getElementById("location").value.trim()
+    const participantsCount = document.getElementById("participants_count").value
+
+    if (!title) {
+      alert("Tadbir nomini kiriting!")
+      document.getElementById("title").focus()
+      return
+    }
+
+    if (!description) {
+      alert("Tadbir haqida ma'lumot kiriting!")
+      document.getElementById("description").focus()
+      return
+    }
+
+    if (!category) {
+      alert("Kategoriyani tanlang!")
+      document.getElementById("category").focus()
+      return
+    }
+
+    if (!eventDate) {
+      alert("Tadbir sanasini tanlang!")
+      document.getElementById("event_date").focus()
+      return
+    }
+
+    if (!location) {
+      alert("Tadbir o'tkazilgan joyni kiriting!")
+      document.getElementById("location").focus()
+      return
+    }
+
+    if (!participantsCount || Number.parseInt(participantsCount) < 1) {
+      alert("Ishtirokchilar sonini kiriting!")
+      document.getElementById("participants_count").focus()
+      return
+    }
+
+    // Check if at least one photo is uploaded
+    const photoInputs = document.querySelectorAll(".photo-input")
+    let hasPhoto = false
+    photoInputs.forEach((input) => {
+      if (input.files.length > 0) {
+        hasPhoto = true
+      }
+    })
+
+    if (!hasPhoto) {
+      alert("Kamida bitta rasm yuklang!")
+      return
+    }
+
+    // Show loading state
+    submitBtn.classList.add("loading")
+    submitBtn.disabled = true
+
+    // Submit form
+    this.submit()
+  })
+
+  // Auto-resize textareas
+  const textareas = document.querySelectorAll("textarea")
+  textareas.forEach((textarea) => {
+    textarea.addEventListener("input", function () {
+      this.style.height = "auto"
+      this.style.height = this.scrollHeight + "px"
+    })
+  })
+
+  // Prevent form submission on page refresh
+  let formChanged = false
+  form.addEventListener("input", () => {
+    formChanged = true
+  })
+
+  window.addEventListener("beforeunload", (e) => {
+    if (formChanged) {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+  })
+})
+
+// Show notification
+function showNotification(message, type = "info") {
+  const notification = document.createElement("div")
+  notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
+  notification.style.cssText = "top: 20px; right: 20px; z-index: 9999; min-width: 300px;"
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="close" data-dismiss="alert">
+      <span>&times;</span>
+    </button>
+  `
+
+  document.body.appendChild(notification)
+
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification)
+    }
+  }, 5000)
+}
+
+</script>
+{% endblock %}

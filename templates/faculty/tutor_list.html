@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold"><i class="fas fa-chalkboard-teacher me-2"></i>{{ title }}</h1>
+        {% if user.is_dean or user.is_rector %}
+            <a href="{% url 'tutor_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Yangi tutor
+            </a>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics Card -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="number">{{ tutors.count }}</div>
+                <div class="label">Jami tutorlar</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tutors Table -->
+    <div class="card">
+        <div class="card-header text-white">
+            <h6 class="mb-0">Tutorlar ro'yxati</h6>
+        </div>
+        <div class="card-body">
+            {% if tutors %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rasm</th>
+                                <th>To'liq ism</th>
+                                <th>Email</th>
+                                <th>Fakultet</th>
+                                <th>Telefon</th>
+                                <th>Guruhlar soni</th>
+                                <th>Talabalar soni</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tutor in tutors %}
+                                <tr>
+                                    <td>
+                                        <div class="col-md-3 text-center">
+                                        {% if tutor.profile_picture %}
+                                            <img src="{{ tutor.profile_picture.url }}" alt="{{ tutor.get_full_name }}" class="rounded-circle img-fluid" style="max-width: 50px;">
+                                        {% else %}
+                                            <img src="https://via.placeholder.com/150" alt="No Image" class="rounded-circle img-fluid" style="max-width: 150px;">
+                                        {% endif %}
+                                    </div>
+                                    </td>
+                                    <td>{{ tutor.get_full_name }}</td>
+                                    <td>{{ tutor.email|default:"Kiritilmagan" }}</td>
+                                    <td>{{ tutor.faculty.name|default:"Tayinlanmagan" }}</td>
+                                    <td>{{ tutor.phone_number|default:"Kiritilmagan" }}</td>
+                                    <td>{{ tutor.groups_count }}</td>
+                                    <td>{{ tutor.students_count }}</td>
+                                    <td>
+                                        <a href="{% url 'tutor_detail' tutor.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if user.is_dean or user.is_rector %}
+                                            <a href="{% url 'tutor_edit' tutor.id %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Tutorlar mavjud emas</h5>
+                    {% if user.is_dean or user.is_rector %}
+                        <p class="text-muted">Birinchi tutorni yarating</p>
+                        <a href="{% url 'tutor_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Yangi tutor yaratish
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

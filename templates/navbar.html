@@ -1,0 +1,83 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}">
+            <i class="fas fa-university me-2"></i>
+            <span class="d-none d-md-inline">QDTU Tutor Tizimi</span>
+            <span class="d-md-none">QDTU</span>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>
+                            <span class="d-none d-lg-inline">Boshqaruv paneli</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'student_list' %}">
+                            <i class="fas fa-user-graduate me-1"></i>
+                            <span class="d-none d-lg-inline">Talabalar</span>
+                        </a>
+                    </li>
+                    {% if user.is_tutor %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'group_list' %}">
+                                <i class="fas fa-users me-1"></i>
+                                <span class="d-none d-lg-inline">Guruhlar</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if user.is_dean or user.is_rector %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'faculty_list' %}">
+                                <i class="fas fa-university me-1"></i>
+                                <span class="d-none d-lg-inline">Fakultetlar</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+            
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light text-primary me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.875rem; font-weight: 600;">
+                                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="d-none d-md-inline">{{ user.get_full_name|truncatechars:15 }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <div class="dropdown-header">
+                                    <strong>{{ user.get_full_name }}</strong><br>
+                                    <small class="text-muted">{{ user.get_user_type_display }}</small>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user me-2"></i>Profil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Chiqish</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Kirish
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

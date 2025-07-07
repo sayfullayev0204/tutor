@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Profil</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-user me-2"></i>Profil ma'lumotlari</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Profil tahrirlash</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="Profil rasmi" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" id="profilePreview">
+                                    {% else %}
+                                        <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;" id="profilePreview">
+                                            <span class="text-white" style="font-size: 3rem; font-weight: 700;">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.profile_picture.id_for_label }}" class="form-label fw-medium">Profil rasmi</label>
+                                    {{ form.profile_picture }}
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-medium">Ism</label>
+                                            {{ form.first_name }}
+                                            {% if form.first_name.errors %}
+                                                <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-medium">Familiya</label>
+                                            {{ form.last_name }}
+                                            {% if form.last_name.errors %}
+                                                <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label fw-medium">Email</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-medium">Telefon raqami</label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold mb-3">Tizim ma'lumotlari</h6>
+                                        <p class="mb-2"><strong>Foydalanuvchi nomi:</strong> {{ user.username }}</p>
+                                        <p class="mb-2"><strong>Lavozim:</strong> {{ user.get_user_type_display }}</p>
+                                        {% if user.faculty %}
+                                            <p class="mb-0"><strong>Fakultet:</strong> {{ user.faculty.name }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold mb-3">Statistika</h6>
+                                        {% if user.is_tutor %}
+                                            <p class="mb-2"><strong>Biriktirilgan guruhlar:</strong> {{ user.assigned_groups.count }}</p>
+                                            <p class="mb-0"><strong>Tekshirishlar:</strong> {{ user.inspections.count }}</p>
+                                        {% elif user.is_dean %}
+                                            <p class="mb-2"><strong>Ko'rib chiqilgan:</strong> {{ user.reviewed_inspections.count }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-save me-2"></i>Saqlash
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Orqaga
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Profile picture preview
+    document.getElementById('{{ form.profile_picture.id_for_label }}').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('profilePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="Profil rasmi" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Dekan Boshqaruv Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 fw-bold mb-1"><i class="fas fa-university me-2"></i>Dekan Boshqaruv Paneli</h1>
+            <p class="text-muted">{{ faculty.name }} fakulteti</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="number">{{ groups.count }}</div>
+                <div class="label">Guruhlar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="number">{{ total_students }}</div>
+                <div class="label">Jami talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="number">{{ renting_students }}</div>
+                <div class="label">Ijara xonadonida</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="number">{{ pending_inspections.count }}</div>
+                <div class="label">Tasdiqlash kutilayotgan</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Pending Inspections -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Tasdiqlash kutilayotgan tekshirishlar</h5>
+                    <span class="badge bg-light text-dark">{{ pending_inspections.count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if pending_inspections %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Talaba</th>
+                                        <th>Tekshiruvchi</th>
+                                        <th>Sana</th>
+                                        <th>Holat</th>
+                                        <th>Amallar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for inspection in pending_inspections %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                        <span class="text-white fw-bold">{{ inspection.student.first_name|first }}{{ inspection.student.last_name|first }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">{{ inspection.student.full_name }}</div>
+                                                        <small class="text-muted">{{ inspection.student.group.name }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ inspection.inspector.get_full_name }}</td>
+                                            <td>{{ inspection.inspection_date|date:"d.m.Y H:i" }}</td>
+                                            <td>
+                                                {% if inspection.condition == 'good' %}
+                                                    <span class="condition-badge condition-good">Yaxshi</span>
+                                                {% elif inspection.condition == 'average' %}
+                                                    <span class="condition-badge condition-average">O'rtacha</span>
+                                                {% else %}
+                                                    <span class="condition-badge condition-poor">Yomon</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'inspection_detail' inspection.id %}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'review_inspection' inspection.id %}" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Tasdiqlash kutilayotgan tekshirishlar yo'q</h5>
+                            <p class="text-muted">Barcha tekshirishlar ko'rib chiqilgan</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Faculty Info & Quick Actions -->
+        <div class="col-lg-4">
+            <!-- Faculty Information -->
+            <div class="card mb-4">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-university me-2"></i>Fakultet ma'lumotlari</h6>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold">{{ faculty.name }}</h5>
+                    {% if faculty.description %}
+                        <p class="text-muted">{{ faculty.description }}</p>
+                    {% endif %}
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <div class="fw-bold text-primary fs-4">{{ groups.count }}</div>
+                            <small class="text-muted">Guruhlar</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-success fs-4">{{ total_students }}</div>
+                            <small class="text-muted">Talabalar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions mb-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-bolt me-2"></i>Tezkor havolalar</h6>
+                <a href="{% url 'student_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-user-graduate"></i>
+                    Fakultet talabalar
+                </a>
+                <a href="{% url 'group_list' %}" class="btn btn-outline-success">
+                    <i class="fas fa-users"></i>
+                    Guruhlar ro'yxati
+                </a>
+                <a href="{% url 'pending_inspections' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-clipboard-check"></i>
+                    Tasdiqlash kutilayotgan
+                </a>
+                <a href="{% url 'inspection_list' %}" class="btn btn-outline-info">
+                    <i class="fas fa-list"></i>
+                    Barcha tekshirishlar
+                </a>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="card">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Statistika</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Ijara xonadonida</span>
+                            <span class="fw-bold">{{ renting_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: {% widthratio renting_students total_students 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>TTJ da yashovchi</span>
+                            <span class="fw-bold">{{ dormitory_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {% widthratio dormitory_students total_students 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Yetim talabalar</span>
+                            <span class="fw-bold">{{ orphan_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-danger" style="width: {% widthratio orphan_students total_students 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Nogironligi bor</span>
+                            <span class="fw-bold">{{ disabled_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-secondary" style="width: {% widthratio disabled_students total_students 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

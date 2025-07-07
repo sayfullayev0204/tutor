@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Fakultetni o'chirish{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'faculty_list' %}">Fakultetlar</a></li>
+                    <li class="breadcrumb-item active">O'chirish</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Fakultetni o'chirish</h1>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-trash me-2"></i>Tasdiqlash</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi.
+                    </div>
+                    
+                    <p class="mb-3">Siz <strong>"{{ faculty.name }}"</strong> fakultetini o'chirmoqchisiz.</p>
+                    
+                    <div class="mb-3">
+                        <strong>Bu fakultetda:</strong>
+                        <ul class="mt-2">
+                            <li>{{ faculty.groups.count }} ta guruh</li>
+                            <li>{{ faculty.students_count }} ta talaba</li>
+                        </ul>
+                    </div>
+                    
+                    {% if faculty.groups.count > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Bu fakultetda guruhlar mavjud. Fakultetni o'chirishdan oldin barcha guruhlarni boshqa fakultetga o'tkazing yoki o'chiring.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'faculty_detail' faculty.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Bekor qilish
+                            </a>
+                            <button type="submit" class="btn btn-danger" {% if faculty.groups.count > 0 %}disabled{% endif %}>
+                                <i class="fas fa-trash me-2"></i>Ha, o'chirish
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

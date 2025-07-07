@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'student_list' %}">Talabalar</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <h1 class="h3 fw-bold">{{ title }}</h1>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>{{ title }}</h6>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h5>Forma xatolarini tuzating:</h5>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="add_new_room" id="add_new_room" value="false">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Shaxsiy ma'lumotlar</h5>
+                        {{ form.first_name|as_crispy_field }}
+                        {{ form.last_name|as_crispy_field }}
+                        {{ form.middle_name|as_crispy_field }}
+                        {{ form.gender|as_crispy_field }}
+                        {{ form.birth_date|as_crispy_field }}
+                        {{ form.student_id|as_crispy_field }}
+                        {{ form.fuqaro|as_crispy_field }}
+                        {{ form.jshshir|as_crispy_field }}
+                        {{ form.passport|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Akademik ma'lumotlar</h5>
+                        {{ form.group|as_crispy_field }}
+                        {{ form.otm|as_crispy_field }}
+                        {{ form.talim_turi|as_crispy_field }}
+                        {{ form.tulov_turi|as_crispy_field }}
+                        {{ form.talim_shakli|as_crispy_field }}
+                        {{ form.shifr|as_crispy_field }}
+                        {{ form.mutaxassislik|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Manzil ma'lumotlari</h5>
+                        {{ form.country|as_crispy_field }}
+                        {{ form.const_region|as_crispy_field }}
+                        {{ form.const_district|as_crispy_field }}
+                        {{ form.temporary_region|as_crispy_field }}
+                        {{ form.temporary_district|as_crispy_field }}
+                        {{ form.temporary_address|as_crispy_field }}
+                        {{ form.appartment_type|as_crispy_field }}
+                        {{ form.room|as_crispy_field }}
+                        {{ form.ttj|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Qo'shimcha ma'lumotlar</h5>
+                        {{ form.phone_number|as_crispy_field }}
+                        {{ form.email|as_crispy_field }}
+                        {{ form.is_orphan|as_crispy_field }}
+                        {{ form.has_disability|as_crispy_field }}
+                        {{ form.family_type|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'student_list' %}" class="btn btn-secondary me-md-2">Bekor qilish</a>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const appartmentType = document.querySelector('#id_appartment_type');
+    const roomField = document.querySelector('#div_id_room');
+    const ttjField = document.querySelector('#div_id_ttj');
+    const roomSelect = document.querySelector('#id_room');
+    const ttjSelect = document.querySelector('#id_ttj');
+    const constRegion = document.querySelector('#id_const_region');
+    const constDistrict = document.querySelector('#id_const_district');
+    const tempRegion = document.querySelector('#id_temporary_region');
+    const tempDistrict = document.querySelector('#id_temporary_district');
+    const addNewRoomInput = document.querySelector('#add_new_room');
+
+    function updateFields() {
+        if (appartmentType && roomField && ttjField && roomSelect && ttjSelect) {
+            console.log("Appartment type:", appartmentType.value); // Debug
+            if (appartmentType.value === 'rent') {
+                roomField.style.display = 'block';
+                ttjField.style.display = 'none';
+                ttjSelect.value = ''; // Clear ttj selection
+            } else if (appartmentType.value === 'ttj') {
+                roomField.style.display = 'none';
+                ttjField.style.display = 'block';
+                roomSelect.value = ''; // Clear room selection
+            } else {
+                roomField.style.display = 'none';
+                ttjField.style.display = 'none';
+                roomSelect.value = ''; // Clear room selection
+                ttjSelect.value = ''; // Clear ttj selection
+            }
+            addNewRoomInput.value = 'false'; // Reset add_new_room flag
+        }
+    }
+
+    if (appartmentType) {
+        appartmentType.addEventListener('change', updateFields);
+        updateFields();
+    }
+
+    if (roomSelect) {
+        roomSelect.addEventListener('change', function () {
+            if (this.value === 'add_new') {
+                addNewRoomInput.value = 'true'; // Set flag to indicate room creation
+                const form = document.querySelector('form');
+                const actionUrl = {% if student %}'{% url "student_edit" pk=student.pk %}'{% else %}'{% url "student_create" %}'{% endif %};
+                form.action = actionUrl;
+                form.submit();
+            } else {
+                addNewRoomInput.value = 'false'; // Reset flag
+            }
+        });
+    }
+
+    function updateDistricts(regionSelect, districtSelect) {
+        if (!regionSelect || !districtSelect) {
+            console.error('Region or district select element not found');
+            return;
+        }
+        const regionId = regionSelect.value;
+        if (!regionId) {
+            districtSelect.innerHTML = '<option value="" selected>---------</option>';
+            return;
+        }
+        console.log('Fetching districts for region:', regionId); // Debug
+        fetch(`{% url 'get_districts' %}?region=${regionId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received districts:', data); // Debug
+                districtSelect.innerHTML = '<option value="" selected>---------</option>';
+                data.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.id;
+                    option.textContent = district.name;
+                    if (districtSelect.dataset.initial == district.id) {
+                        option.selected = true;
+                    }
+                    districtSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching districts:', error);
+                districtSelect.innerHTML = '<option value="" selected>Xatolik yuz berdi</option>';
+            });
+    }
+
+    if (constRegion && constDistrict) {
+        constRegion.addEventListener('change', () => updateDistricts(constRegion, constDistrict));
+        if (constRegion.value) {
+            updateDistricts(constRegion, constDistrict);
+        }
+    }
+    if (tempRegion && tempDistrict) {
+        tempRegion.addEventListener('change', () => updateDistricts(tempRegion, tempDistrict));
+        if (tempRegion.value) {
+            updateDistricts(tempRegion, tempDistrict);
+        }
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,182 @@
+{% load static %}
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link sidebar-toggle d-lg-none" type="button" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="sidebar-content">
+        <div class="user-info">
+            <div class="text-center">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}"  class="profile-image mb-3" >
+                {% else %}
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="user-details text-center">
+                <div class="mb-1 fw-bold">{{ user.get_full_name }}</div>
+                <div class="badge bg-primary">
+                    {% if user.is_rector %}
+                        Rektor
+                    {% elif user.is_dean %}
+                        Dekan
+                    {% elif user.is_tutor %}
+                        Tutor
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name|slice:':7' == 'rector_' or request.resolver_match.url_name|slice:':5' == 'dean_' or request.resolver_match.url_name|slice:':6' == 'tutor_' %}active{% endif %}" href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Boshqaruv paneli</span>
+                    </a>
+                </li>
+                
+                {% if user.is_tutor %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'group_list' or request.resolver_match.url_name == 'group_detail' %}active{% endif %}" href="{% url 'group_list' %}">
+                            <i class="fas fa-users"></i>
+                            <span>Guruhlar</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'room_list' or request.resolver_match.url_name == 'room_detail' %}active{% endif %}" href="{% url 'room_list' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Ijara xonadonlari</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'student_list' or request.resolver_match.url_name == 'student_detail' %}active{% endif %}" href="{% url 'student_list' %}">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Talabalar</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'event_list' %}">
+                            <i class="fas fa-calendar-alt"></i> Tadbirlar
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'plan_list' or request.resolver_match.url_name == 'plan_detail' or request.resolver_match.url_name == 'plan_create' %}active{% endif %}" href="{% url 'plan_list' %}">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Rejalarim</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if user.is_dean %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'faculty_info' %}active{% endif %}" href="#" onclick="showFacultyInfo()">
+                            <i class="fas fa-university"></i>
+                            <span>Fakultet ma'lumotlari</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'tutor_list' %}active{% endif %}" href="{% url 'tutor_list' %}">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Tutorlar</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'pending_inspections' %}active{% endif %}" href="{% url 'pending_inspections' %}">
+                            <i class="fas fa-clock"></i>
+                            <span>Tasdiqlanishi kutilayotgan</span>
+                            {% with pending_count=user.faculty.groups.all|length %}
+                                {% if pending_count > 0 %}
+                                    <span class="badge bg-warning ms-auto">{{ pending_count }}</span>
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'group_list' %}active{% endif %}" href="{% url 'group_list' %}">
+                            <i class="fas fa-users"></i>
+                            <span>Guruhlar</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}" href="{% url 'student_list' %}">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Talabalar ro'yxati</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dean_events' %}">
+                            <i class="fas fa-calendar-check"></i> Tadbirlar
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if user.is_rector %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'faculty_list' %}active{% endif %}" href="{% url 'faculty_list' %}">
+                            <i class="fas fa-university"></i>
+                            <span>Fakultetlar</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" href="{% url 'statistics' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Statistika</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'inspection_list' %}active{% endif %}" href="{% url 'inspection_list' %}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Tekshirishlar</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item mt-auto">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Profil sozlamalari</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Chiqish</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('collapsed');
+}
+
+function showFacultyInfo() {
+    // Faculty info modal or redirect
+    {% if user.is_dean and user.faculty %}
+        alert('Fakultet: {{ user.faculty.name }}\nGuruhlar: {{ user.faculty.groups.count }}\nTalabalar: {{ user.faculty.students_count }}');
+    {% endif %}
+}
+</script>

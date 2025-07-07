@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Ijara xonadonida yashovchi talabalar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Ijara xonadonida yashovchilar</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-home me-2"></i>Ijara xonadonida yashovchi talabalar</h1>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="number">{{ students.count }}</div>
+                <div class="label">Ijara xonadonida</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div class="number">{{ students|length|add:0 }}</div>
+                <div class="label">Erkak talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card info">
+                <div class="icon">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div class="number">{{ students|length|add:0 }}</div>
+                <div class="label">Ayol talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="number">
+                    {% with inspections=0 %}
+                        {% for student in students %}
+                            {% with inspections=inspections|add:student.housing_inspections.count %}{% endwith %}
+                        {% endfor %}
+                        {{ inspections }}
+                    {% endwith %}
+                </div>
+                <div class="label">Tekshirishlar</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students List -->
+    <div class="card">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Talabalar ro'yxati</h5>
+            <span class="badge bg-light text-dark">{{ students.count }} ta</span>
+        </div>
+        <div class="card-body">
+            {% if students %}
+                <!-- Search and Filter -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-control search-input" placeholder="Talaba qidirish..." data-target="#studentsTable">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" id="groupFilter">
+                            <option value="">Barcha guruhlar</option>
+                            {% regroup students by group as grouped_students %}
+                            {% for group in grouped_students %}
+                                <option value="{{ group.grouper.name }}">{{ group.grouper.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>F.I.O</th>
+                                <th>Guruh</th>
+                                <th>Manzil</th>
+                                <th>Telefon</th>
+                                <th>Oxirgi tekshirish</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr data-group="{{ student.group.name }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-warning bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <span class="text-white fw-bold">{{ student.first_name|first }}{{ student.last_name|first }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ student.full_name }}</div>
+                                                <small class="text-muted">{{ student.get_gender_display }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ student.group.name }}</div>
+                                        <small class="text-muted">{{ student.group.faculty.name }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ student.address|truncatechars:30 }}</div>
+                                        {% if student.is_orphan %}
+                                            <span class="badge bg-danger me-1"><i class="fas fa-heart me-1"></i>Yetim</span>
+                                        {% endif %}
+                                        {% if student.has_disability %}
+                                            <span class="badge bg-secondary"><i class="fas fa-wheelchair me-1"></i>Nogiron</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ student.phone_number|default:"-" }}</td>
+                                    <td>
+                                        {% with last_inspection=student.housing_inspections.first %}
+                                            {% if last_inspection %}
+                                                <div class="fw-medium">{{ last_inspection.inspection_date|date:"d.m.Y" }}</div>
+                                                {% if last_inspection.condition == 'good' %}
+                                                    <span class="condition-badge condition-good">Yaxshi</span>
+                                                {% elif last_inspection.condition == 'average' %}
+                                                    <span class="condition-badge condition-average">O'rtacha</span>
+                                                {% else %}
+                                                    <span class="condition-badge condition-poor">Yomon</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Tekshirilmagan</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_tutor and student.group.tutor == user %}
+                                                <a href="{% url 'create_inspection' student.id %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-clipboard-check"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Ijara xonadonida yashovchi talabalar yo'q</h5>
+                    <p class="text-muted">Hozircha sizning guruhlaringizda ijara xonadonida yashovchi talabalar mavjud emas</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Group filter
+    $('#groupFilter').on('change', function() {
+        const selectedGroup = $(this).val();
+        $('#studentsTable tbody tr').each(function() {
+            const groupName = $(this).data('group');
+            if (selectedGroup === '' || groupName === selectedGroup) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

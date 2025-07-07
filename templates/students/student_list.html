@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Talabalar ro'yxati{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Talabalar</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-user-graduate me-2"></i>Talabalar ro'yxati</h1>
+        </div>
+        {% if user.is_tutor %}
+            <div class="col-auto">
+                <a href="{% url 'student_create' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Yangi talaba
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="search-box position-relative">
+                        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control ps-5" name="search" placeholder="Talaba ismi, familiyasi, guruh, ID, JSHSHIR yoki pasport..." value="{{ search_query|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="gender" class="form-select">
+                        <option value="" {% if not request.GET.gender %}selected{% endif %}>Barcha jinslar</option>
+                        <option value="male" {% if request.GET.gender == 'male' %}selected{% endif %}>Erkak</option>
+                        <option value="female" {% if request.GET.gender == 'female' %}selected{% endif %}>Ayol</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="appartment_type" class="form-select">
+                        <option value="" {% if not request.GET.appartment_type %}selected{% endif %}>Barcha yashash turlari</option>
+                        <option value="ttj" {% if request.GET.appartment_type == 'ttj' %}selected{% endif %}>TTJ</option>
+                        <option value="rent" {% if request.GET.appartment_type == 'rent' %}selected{% endif %}>Ijara</option>
+                        <option value="home" {% if request.GET.appartment_type == 'home' %}selected{% endif %}>Uyda</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Qidirish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Talabalar</h5>
+            <span class="badge bg-light text-dark">{{ students.count }} ta</span>
+        </div>
+        <div class="card-body">
+            {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>F.I.O</th>
+                                <th>Guruh</th>
+                                <th>Jinsi</th>
+                                <th>Yashash</th>
+                                <th>Maxsus belgilar</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <span class="text-white fw-bold">{{ student.first_name|first|default:"?" }}{{ student.last_name|first|default:"?" }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ student.full_name|default:"Noma'lum" }}</div>
+                                                <small class="text-muted">{{ student.birth_date|date:"d.m.Y"|default:"-" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ student.group.name|default:"Kiritilmagan" }}</div>
+                                        <small class="text-muted">{{ student.group.faculty.name|default:"Kiritilmagan" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if student.gender == 'male' %}
+                                            <span class="badge bg-primary"><i class="fas fa-mars me-1"></i>Erkak</span>
+                                        {% elif student.gender == 'female' %}
+                                            <span class="badge bg-info"><i class="fas fa-venus me-1"></i>Ayol</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if student.appartment_type == 'rent' %}
+                                            <span class="badge bg-warning"><i class="fas fa-home me-1"></i>Ijara</span>
+                                        {% elif student.appartment_type == 'ttj' %}
+                                            <span class="badge bg-success"><i class="fas fa-building me-1"></i>TTJ</span>
+                                        {% elif student.appartment_type == 'home' %}
+                                            <span class="badge bg-secondary"><i class="fas fa-house-user me-1"></i>Uyda</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Noma'lum</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if student.is_orphan %}
+                                            <span class="badge bg-danger me-1"><i class="fas fa-heart me-1"></i>Yetim</span>
+                                        {% endif %}
+                                        {% if student.has_disability %}
+                                            <span class="badge bg-secondary"><i class="fas fa-wheelchair me-1"></i>Nogiron</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_tutor and student.group.tutor == user %}
+                                                {% if student.appartment_type == 'rent' %}
+                                                    <a href="{% url 'create_inspection' student.id %}" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-clipboard-check"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <a href="{% url 'student_edit' student.id %}" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'student_delete' student.id %}" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Talabalar topilmadi</h5>
+                    <p class="text-muted">Qidiruv shartlarini o'zgartiring</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-box .search-icon {
+        pointer-events: none;
+    }
+    .search-box input:focus + .search-icon {
+        color: #007bff;
+    }
+</style>
+{% endblock %}

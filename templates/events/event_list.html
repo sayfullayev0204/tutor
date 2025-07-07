@@ -1,0 +1,687 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mening tadbirlarim{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Events CSS */
+.event-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e3e6f0;
+  border-radius: 8px;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #28a745;
+}
+
+.event-info {
+  border-left: 3px solid #e3e6f0;
+  padding-left: 0.75rem;
+}
+
+.event-description {
+  background-color: #f8f9fc;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e3e6f0;
+}
+
+.event-photos {
+  background-color: #e8f5e8;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+
+.dean-comment {
+  background-color: #fff3cd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #ffc107;
+}
+
+/* Event Form Styles */
+.event-form-container {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-radius: 20px;
+  padding: 0;
+  margin: 20px 0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.form-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  text-align: center;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+.form-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.form-subtitle {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.section-container {
+  background: white;
+  margin: 0;
+  padding: 30px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-container:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* Photo Upload */
+.photo-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.photo-upload-item {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  border: 2px dashed #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.photo-upload-item:hover {
+  border-color: #28a745;
+  background: #f0fff4;
+}
+
+.photo-upload-header h6 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.photo-upload-area {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.photo-input {
+  display: none;
+}
+
+.photo-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.photo-label:hover {
+  border-color: #28a745;
+  background: #f0fff4;
+}
+
+.photo-label i {
+  font-size: 2rem;
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.photo-label span {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.photo-label small {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.photo-preview {
+  display: none;
+  position: relative;
+}
+
+.photo-preview.active {
+  display: block;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #dee2e6;
+}
+
+.photo-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-comment label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.photo-comment textarea {
+  width: 100%;
+  min-height: 80px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.photo-comment textarea:focus {
+  outline: none;
+  border-color: #28a745;
+}
+
+/* Form Footer */
+.form-footer {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  padding: 30px;
+  text-align: center;
+}
+
+.submit-btn {
+  background: white;
+  color: #28a745;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.submit-btn i {
+  margin-right: 10px;
+}
+
+/* Loading state */
+.submit-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.submit-btn.loading::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid #28a745;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .event-form-container {
+    margin: 10px;
+    border-radius: 15px;
+  }
+
+  .form-header {
+    padding: 20px;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+
+  .section-container {
+    padding: 20px;
+  }
+
+  .photo-upload-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Animation */
+.event-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.photo-upload-item {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-calendar-alt"></i>
+                            Mening tadbirlarim
+                            <span class="badge badge-light ml-2">{{ stats.total }}</span>
+                        </h4>
+                        <a href="{% url 'create_event' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus"></i> Yangi tadbir
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search and Filter -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="Tadbir nomi yoki joyi bo'yicha qidiring..."
+                                           value="{{ search }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        {% if search %}
+                                        <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="status" class="form-control" onchange="this.form.submit()">
+                                    <option value="">Barcha statuslar</option>
+                                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+                                    <option value="approved" {% if status == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
+                                    <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rad etilgan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-right">
+                                    <small class="text-muted">
+                                        <i class="fas fa-check-circle text-success"></i> {{ stats.approved }} tasdiqlangan
+                                        <i class="fas fa-clock text-warning ml-2"></i> {{ stats.pending }} kutilmoqda
+                                        {% if stats.rejected > 0 %}
+                                        <i class="fas fa-times-circle text-danger ml-2"></i> {{ stats.rejected }} rad etilgan
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Events List -->
+                    <div class="row">
+                        {% for event in events %}
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card event-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-calendar text-primary"></i>
+                                            {{ event.title|truncatechars:30 }}
+                                        </h6>
+                                        <span class="badge badge-{% if event.status == 'approved' %}success{% elif event.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                            {% if event.status == 'approved' %}
+                                                <i class="fas fa-check"></i> Tasdiqlangan
+                                            {% elif event.status == 'rejected' %}
+                                                <i class="fas fa-times"></i> Rad etilgan
+                                            {% else %}
+                                                <i class="fas fa-clock"></i> Kutilmoqda
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="event-info mb-3">
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-tag"></i> {{ event.get_category_display }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-calendar-day"></i> {{ event.event_date|date:"d.m.Y H:i" }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-map-marker-alt"></i> {{ event.location|truncatechars:30 }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-users"></i> {{ event.participants_count }} ishtirokchi
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="event-description mb-3">
+                                        <p class="text-muted small">{{ event.description|truncatechars:100 }}</p>
+                                    </div>
+                                    
+                                    {% if event.photos.exists %}
+                                    <div class="event-photos mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-images"></i> {{ event.photos.count }} ta rasm
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if event.dean_comment %}
+                                    <div class="dean-comment mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-comment"></i> Dekan izohi mavjud
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-light">
+                                    <div class="btn-group w-100">
+                                        <a href="{% url 'event_detail' event.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Ko'rish
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Tadbirlar topilmadi</h5>
+                                <p class="text-muted">
+                                    {% if search %}
+                                        "{{ search }}" bo'yicha qidiruv natijasi topilmadi
+                                    {% else %}
+                                        Hozircha siz hech qanday tadbir yaratmagansiz
+                                    {% endif %}
+                                </p>
+                                <a href="{% url 'create_event' %}" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> Birinchi tadbiringizni yarating
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if events.has_other_pages %}
+                    <nav aria-label="Sahifalar" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if events.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ events.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in events.paginator.page_range %}
+                                {% if events.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if events.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ events.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+  // Dean Events JavaScript
+let currentEventId = null
+let currentAction = null
+
+function viewEvent(eventId) {
+  // Load event details via AJAX
+  fetch(`/events/${eventId}/details/`)
+    .then((response) => response.json())
+    .then((data) => {
+      document.getElementById("eventDetails").innerHTML = data.html
+      window.jQuery("#eventModal").modal("show")
+    })
+    .catch((error) => {
+      console.error("Error:", error)
+      showNotification("Xatolik yuz berdi!", "danger")
+    })
+}
+
+function approveEvent(eventId) {
+  currentEventId = eventId
+  currentAction = "approve"
+
+  document.getElementById("approvalModalTitle").textContent = "Tadbirni tasdiqlash"
+  document.getElementById("approvalSubmitBtn").textContent = "Tasdiqlash"
+  document.getElementById("approvalSubmitBtn").className = "btn btn-success"
+
+  window.jQuery("#approvalModal").modal("show")
+}
+
+function rejectEvent(eventId) {
+  currentEventId = eventId
+  currentAction = "reject"
+
+  document.getElementById("approvalModalTitle").textContent = "Tadbirni rad etish"
+  document.getElementById("approvalSubmitBtn").textContent = "Rad etish"
+  document.getElementById("approvalSubmitBtn").className = "btn btn-danger"
+
+  window.jQuery("#approvalModal").modal("show")
+}
+
+// Handle approval form submission
+document.getElementById("approvalForm").addEventListener("submit", (e) => {
+  e.preventDefault()
+
+  const deanComment = document.getElementById("dean_comment").value.trim()
+  const submitBtn = document.getElementById("approvalSubmitBtn")
+
+  // Show loading state
+  submitBtn.classList.add("btn-loading")
+  submitBtn.disabled = true
+
+  // Prepare form data
+  const formData = new FormData()
+  formData.append("action", currentAction)
+  formData.append("dean_comment", deanComment)
+  formData.append("csrfmiddlewaretoken", document.querySelector("[name=csrfmiddlewaretoken]").value)
+
+  // Send request
+  fetch(`/events/${currentEventId}/approve/`, {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        window.jQuery("#approvalModal").modal("hide")
+        showNotification(
+          currentAction === "approve" ? "Tadbir tasdiqlandi!" : "Tadbir rad etildi!",
+          currentAction === "approve" ? "success" : "warning",
+        )
+
+        // Reload page after short delay
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      } else {
+        showNotification("Xatolik yuz berdi!", "danger")
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error)
+      showNotification("Xatolik yuz berdi!", "danger")
+    })
+    .finally(() => {
+      // Remove loading state
+      submitBtn.classList.remove("btn-loading")
+      submitBtn.disabled = false
+    })
+})
+
+// Reset modal when closed
+window.jQuery("#approvalModal").on("hidden.bs.modal", () => {
+  document.getElementById("dean_comment").value = ""
+  currentEventId = null
+  currentAction = null
+})
+
+// Utility function for notifications
+function showNotification(message, type = "info") {
+  const notification = document.createElement("div")
+  notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
+  notification.style.cssText = "top: 20px; right: 20px; z-index: 9999; min-width: 300px;"
+  notification.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    `
+
+  document.body.appendChild(notification)
+
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification)
+    }
+  }, 5000)
+}
+
+// Auto-refresh page every 5 minutes to check for new events
+setInterval(() => {
+  const currentUrl = new URL(window.location)
+  if (currentUrl.searchParams.get("status") === "pending" || !currentUrl.searchParams.get("status")) {
+    window.location.reload()
+  }
+}, 300000) // 5 minutes
+
+// Add CSRF token to all AJAX requests
+const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value
+if (csrfToken) {
+  // Add CSRF token to fetch requests
+  const originalFetch = window.fetch
+  window.fetch = (url, options = {}) => {
+    if (options.method && options.method.toUpperCase() !== "GET") {
+      options.headers = options.headers || {}
+      options.headers["X-CSRFToken"] = csrfToken
+    }
+    return originalFetch(url, options)
+  }
+}
+
+// Declare jQuery variable
+const $ = window.jQuery
+
+</script>
+{% endblock %}

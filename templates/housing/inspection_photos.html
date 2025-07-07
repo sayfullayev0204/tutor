@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Tekshirish Rasmlari{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ inspection.student.full_name }} uchun Rasmlar</h2>
+    {% if photos %}
+        <div class="row">
+            {% for photo in photos %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <!-- Thumbnail image, clickable to open modal -->
+                        <img src="{{ photo.photo.url }}" class="card-img-top" alt="{{ photo.caption|default:'Rasm' }}" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#photoModal{{ photo.id }}">
+                        <div class="card-body">
+                            <p class="card-text">{{ photo.caption|default:"Izoh yo'q" }}</p>
+                            <p class="card-text"><small class="text-muted">{{ photo.uploaded_at|date:"Y-m-d H:i" }}</small></p>
+                        </div>
+                    </div>
+
+                    <!-- Modal for enlarged image -->
+                    <div class="modal fade" id="photoModal{{ photo.id }}" tabindex="-1" aria-labelledby="photoModalLabel{{ photo.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="photoModalLabel{{ photo.id }}">{{ photo.caption|default:"Rasm" }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <img src="{{ photo.photo.url }}" class="img-fluid" alt="{{ photo.caption|default:'Rasm' }}">
+                                </div>
+                                <div class="modal-footer">
+                                    <p><small class="text-muted">Yuklangan: {{ photo.uploaded_at|date:"Y-m-d H:i" }}</small></p>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Rasm mavjud emas.</div>
+    {% endif %}
+    <a href="{% url 'inspection_list' %}" class="btn btn-secondary mt-3">Orqaga</a>
+</div>
+{% endblock %}

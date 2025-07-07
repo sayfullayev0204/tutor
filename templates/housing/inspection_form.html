@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}Yashash sharoiti tekshiruvi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'student_detail' student.id %}">{{ student.full_name }}</a></li>
+                    <li class="breadcrumb-item active">Tekshirish</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Yashash sharoiti tekshiruvi</h1>
+                    <p class="text-muted">{{ student.full_name }} uchun</p>
+                </div>
+                <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Orqaga
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Student Info -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                        <span class="text-white fw-bold fs-3">{{ student.first_name|first }}{{ student.last_name|first }}</span>
+                    </div>
+                </div>
+                <div class="col-md-10">
+                    <h4 class="fw-bold mb-2">{{ student.full_name }}</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Guruh:</strong> {{ student.group.name }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Fakultet:</strong> {{ student.group.faculty.name }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Manzil:</strong> {{ student.address }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inspection Form -->
+    <div class="card">
+        <div class="card-header text-white">
+            <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Tekshirish shakli</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="inspectionForm">
+                {% csrf_token %}
+                
+                <!-- Condition Assessment -->
+                <div class="mb-5">
+                    <h6 class="fw-bold mb-4">Yashash sharoiti holatini baholang</h6>
+                    <div class="row justify-content-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-success condition-card" data-condition="good">
+                                <div class="card-body text-center p-4">
+                                    <i class="fas fa-smile fa-3x text-success mb-3"></i>
+                                    <h5 class="fw-bold text-success">Yaxshi</h5>
+                                    <p class="text-muted">Barcha talablar bajarilgan</p>
+                                    <input type="radio" name="condition" value="good" class="d-none" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-warning condition-card" data-condition="average">
+                                <div class="card-body text-center p-4">
+                                    <i class="fas fa-meh fa-3x text-warning mb-3"></i>
+                                    <h5 class="fw-bold text-warning">O'rtacha</h5>
+                                    <p class="text-muted">Ba'zi kamchiliklar bor</p>
+                                    <input type="radio" name="condition" value="average" class="d-none">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-danger condition-card" data-condition="poor">
+                                <div class="card-body text-center p-4">
+                                    <i class="fas fa-frown fa-3x text-danger mb-3"></i>
+                                    <h5 class="fw-bold text-danger">Yomon</h5>
+                                    <p class="text-muted">Jiddiy muammolar mavjud</p>
+                                    <input type="radio" name="condition" value="poor" class="d-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Photo Upload -->
+                <div class="mb-5">
+                    <h6 class="fw-bold mb-4">Rasmlar yuklang (kamida 1 ta)</h6>
+                    <div class="row">
+                        {{ formset.management_form }}
+                        {% for form in formset %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-medium">Rasm {{ forloop.counter }}</label>
+                                            {{ form.photo }}
+                                            {% if form.photo.errors %}
+                                                <div class="text-danger small">{{ form.photo.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-medium">Izoh</label>
+                                            {{ form.caption }}
+                                        </div>
+                                        <div class="photo-preview" id="preview{{ forloop.counter }}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Comments -->
+                <div class="mb-5">
+                    <h6 class="fw-bold mb-4">Izoh</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="comment" id="comment1" value="Xonadon o'rganildi, barchasi yaxshi" required>
+                                <label class="form-check-label" for="comment1">
+                                    Xonadon o'rganildi, barchasi yaxshi
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="comment" id="comment2" value="Xonadon o'rtacha axvolda">
+                                <label class="form-check-label" for="comment2">
+                                    Xonadon o'rtacha axvolda
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="comment" id="comment3" value="Xonadon talabga javob bermaydi">
+                                <label class="form-check-label" for="comment3">
+                                    Xonadon talabga javob bermaydi
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="comment" id="comment_custom" value="custom">
+                                <label class="form-check-label" for="comment_custom">
+                                    Boshqa izoh
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="customCommentContainer" style="display: none;">
+                                <label for="customComment" class="form-label fw-medium">Batafsil izoh</label>
+                                <textarea class="form-control" id="customComment" rows="5" placeholder="Izohingizni kiriting..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                        <i class="fas fa-save me-2"></i>Tekshirishni saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .condition-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .condition-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .condition-card.selected {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .condition-card.selected.border-success {
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    }
+    
+    .condition-card.selected.border-warning {
+        box-shadow: 0 10px 25px rgba(255, 193, 7, 0.3);
+    }
+    
+    .condition-card.selected.border-danger {
+        box-shadow: 0 10px 25px rgba(220, 53, 69, 0.3);
+    }
+    
+    .photo-preview img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Condition selection
+        $('.condition-card').on('click', function() {
+            $('.condition-card').removeClass('selected');
+            $(this).addClass('selected');
+            $(this).find('input[type="radio"]').prop('checked', true);
+        });
+        
+        // Custom comment toggle
+        $('input[name="comment"]').on('change', function() {
+            if ($('#comment_custom').is(':checked')) {
+                $('#customCommentContainer').show();
+            } else {
+                $('#customCommentContainer').hide();
+            }
+        });
+        
+        // Photo preview
+        $('input[type="file"]').on('change', function(e) {
+            const file = e.target.files[0];
+            const previewId = '#preview' + $(this).closest('.col-md-4').index() + 1;
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $(previewId).html(`<img src="${e.target.result}" alt="Preview">`);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Form validation
+        $('#inspectionForm').on('submit', function(e) {
+            if ($('#comment_custom').is(':checked') && !$('#customComment').val().trim()) {
+                e.preventDefault();
+                alert('Iltimos, batafsil izohingizni kiriting!');
+                $('#customComment').focus();
+                return false;
+            }
+            
+            // Check if at least one photo is uploaded
+            let hasPhoto = false;
+            $('input[type="file"]').each(function() {
+                if (this.files.length > 0) {
+                    hasPhoto = true;
+                    return false;
+                }
+            });
+            
+            if (!hasPhoto) {
+                e.preventDefault();
+                alert('Iltimos, kamida bitta rasm yuklang!');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

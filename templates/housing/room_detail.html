@@ -1,0 +1,651 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ room.address }} - Xona tafsilotlari{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/housing.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Xona ma'lumotlari -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-home"></i>
+                        {{ room.address }} <!-- Prominently display the address -->
+                    </h3>
+                    <!-- Update the inspection status display -->
+                    <div class="card-tools">
+                        <span class="badge badge-{{ room.inspection_badge.0 }} badge-lg">
+                            {{ room.inspection_badge.1 }}
+                        </span>
+                        {% if room.pending_inspections_count > 0 %}
+                        <span class="badge badge-info badge-sm ml-1">
+                            {{ room.pending_inspections_count }} kutilmoqda
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong><i class="fas fa-map-marker-alt"></i> Manzil:</strong></td>
+                                    <td>{{ room.address }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-door-open"></i> Xona raqami:</strong></td>
+                                    <td>{{ room.room_number|default:"Belgilanmagan" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-home"></i> Xona turi:</strong></td>
+                                    <td>{{ room.get_room_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-ruler-combined"></i> Maydoni:</strong></td>
+                                    <td>{{ room.area }} m²</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-money-bill-wave"></i> Ijara narxi:</strong></td>
+                                    <td>{{ room.rent_price|floatformat:0 }} so'm</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong><i class="fas fa-user"></i> Uy egasi:</strong></td>
+                                    <td>{{ room.landlord_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-phone"></i> Telefon:</strong></td>
+                                    <td>{{ room.landlord_phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-star"></i> Holati:</strong></td>
+                                    <td>{{ room.get_condition_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong><i class="fas fa-calendar-plus"></i> Yaratilgan:</strong></td>
+                                    <td>{{ room.created_at|date:"d.m.Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Xona joylashuvi (Google Map) -->
+                    {% if room.latitude and room.longitude %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5><i class="fas fa-map-marked-alt"></i> Xona joylashuvi</h5>
+                            <div id="map" style="height: 400px; width: 100%;"></div>
+                            
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <p class="text-muted"><i class="fas fa-info-circle"></i> Joylashuv ma'lumotlari mavjud emas.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Xona imkoniyatlari -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5><i class="fas fa-list-check"></i> Xona imkoniyatlari:</h5>
+                            <div class="features-grid">
+                                <div class="feature-item {% if room.has_kitchen %}available{% else %}unavailable{% endif %}">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Oshxona</span>
+                                    <div class="feature-status">
+                                        {% if room.has_kitchen %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <small>Mavjud</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                            <small>Yo'q</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="feature-item {% if room.has_bathroom %}available{% else %}unavailable{% endif %}">
+                                    <i class="fas fa-bath"></i>
+                                    <span>Hammom</span>
+                                    <div class="feature-status">
+                                        {% if room.has_bathroom %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <small>Mavjud</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                            <small>Yo'q</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="feature-item {% if room.has_internet %}available{% else %}unavailable{% endif %}">
+                                    <i class="fas fa-wifi"></i>
+                                    <span>Internet</span>
+                                    <div class="feature-status">
+                                        {% if room.has_internet %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <small>Mavjud</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                            <small>Yo'q</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="feature-item {% if room.has_heating %}available{% else %}unavailable{% endif %}">
+                                    <i class="fas fa-fire"></i>
+                                    <span>Isitish</span>
+                                    <div class="feature-status">
+                                        {% if room.has_heating %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <small>Mavjud</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                            <small>Yo'q</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if room.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5><i class="fas fa-sticky-note"></i> Qo'shimcha ma'lumotlar:</h5>
+                            <p class="text-muted">{{ room.notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <a href="{% url 'room_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Orqaga
+                    </a>
+                    <a href="{% url 'create_inspection' room.id %}" class="btn btn-warning">
+                        <i class="fas fa-clipboard-check"></i> Tekshirish o'tkazish
+                    </a>
+                    {% if room.last_approved_inspection %}
+                    <small class="text-muted ml-3">
+                        Oxirgi tasdiqlangan: {{ room.last_approved_inspection.inspection_date|date:"d.m.Y" }}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Talabalar ro'yxati -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users"></i>
+                        Xonadagi talabalar
+                        <span class="badge badge-primary">{{ students.count }}</span>
+                    </h3>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if students %}
+                    <div class="list-group list-group-flush">
+                        {% for student in students %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3">
+                                    {{ student.first_name.0 }}{{ student.last_name.0 }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ student.full_name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        {{ student.group.name }}
+                                    </small>
+                                    {% if student.phone_number %}
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-phone"></i>
+                                        {{ student.phone_number }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Bu xonada talabalar yo'q</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tekshiruvlar tarixi -->
+    {% if inspections %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-history"></i>
+                        Tekshiruvlar tarixi
+                    </h3>
+                </div>
+                
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for inspection in inspections %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-{{ inspection.status|default:'secondary' }}"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ inspection.inspector.get_full_name }}
+                                            <span class="badge badge-{{ inspection.status|default:'secondary' }} ml-2">
+                                                {% if inspection.status == 'approved' %}
+                                                <p style="color:#155724;"><i class="fas fa-check"></i> Tasdiqlangan</p>
+                                                {% elif inspection.status == 'rejected' %}
+                                                <p style="color:#dc3545;"><i class="fas fa-times"></i> Rad etilgan</p>
+                                                {% else %}
+                                                <p style="color:#ffc107;"><i class="fas fa-clock"></i> Kutilmoqda</p>
+                                                {% endif %}
+                                            </span>
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i>
+                                            {{ inspection.inspection_date|date:"d.m.Y H:i" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="inspection-scores">
+                                            <small class="text-muted">Umumiy ball:</small>
+                                            <span class="badge badge-info" style="color: #4e73df;">{{ inspection.overall_score }}/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p class="mt-2 mb-1">{{ inspection.comment }}</p>
+                                
+                                {% if inspection.dean_comment %}
+                                <div class="dean-comment mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-tie"></i>
+                                        Dekan izohi:
+                                    </small>
+                                    <p class="mb-0">{{ inspection.dean_comment }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+{% if room.latitude and room.longitude %}
+<script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+<script>
+function initMap() {
+    // Use Django template variables for latitude and longitude
+    const roomLocation = { 
+        lat: {{ room.latitude|floatformat:6 }}, 
+        lng: {{ room.longitude|floatformat:6 }} 
+    };
+    
+    // Validate coordinates
+    if (isNaN(roomLocation.lat) || isNaN(roomLocation.lng)) {
+        console.error("Invalid coordinates:", roomLocation);
+        return;
+    }
+
+    const map = new google.maps.Map(document.getElementById('map'), {
+        center: roomLocation,
+        zoom: 15,
+        mapTypeControl: false,
+        streetViewControl: false
+    });
+
+    new google.maps.Marker({
+        position: roomLocation,
+        map: map,
+        title: "{{ room.address|escapejs }}"
+    });
+}
+</script>
+{% endif %}
+{% endblock %}
+
+<style>
+/* Existing styles retained */
+.room-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid #e3e6f0;
+}
+
+.room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.inspection-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.info-box {
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.info-number {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.info-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #858796;
+    text-transform: uppercase;
+}
+
+.room-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.room-features .badge {
+    font-size: 0.7rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid #e3e6f0;
+    background: #fff;
+    position: relative;
+}
+
+.feature-item.available {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+    color: #155724;
+}
+
+.feature-item.unavailable {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.feature-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.feature-item span {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.feature-status i {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.feature-status small {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4e73df;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e3e6f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.timeline-content {
+    background-color: #f8f9fc;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #4e73df;
+}
+
+.dean-comment {
+    background-color: #fff3cd;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}
+
+.inspection-scores {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* Form Styles */
+.score-input {
+    position: relative;
+}
+
+.form-range {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.score-display {
+    text-align: center;
+    font-weight: bold;
+    color: #4e73df;
+    font-size: 1.1rem;
+}
+
+.custom-file-label::after {
+    content: "Ko'rish";
+}
+
+#imagePreview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.image-preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e3e6f0;
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .timeline {
+        padding-left: 1.5rem;
+    }
+
+    .timeline::before {
+        left: 0.75rem;
+    }
+
+    .timeline-marker {
+        left: -1.5rem;
+    }
+}
+
+/* Status Colors */
+.bg-pending {
+    background-color: #ffc107;
+}
+.bg-approved {
+    background-color: #28a745;
+}
+.bg-rejected {
+    background-color: #dc3545;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.room-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.feature-item {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Loading States */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+</style>
+{% endblock %}

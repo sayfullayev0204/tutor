@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}Rejalarim{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Rejalarim</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 fw-bold"><i class="fas fa-calendar-alt me-2"></i>Rejalarim</h1>
+                <a href="{% url 'plan_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Yangi reja
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div class="number">{{ total_plans }}</div>
+                <div class="label">Jami rejalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="number">{{ pending_plans }}</div>
+                <div class="label">Kutilayotgan</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="number">{{ completed_plans }}</div>
+                <div class="label">Bajarilgan</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="number">{{ overdue_plans }}</div>
+                <div class="label">Muddati o'tgan</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" name="search" placeholder="Reja qidirish..." value="{{ search_query }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Barcha holatlar</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilayotgan</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>Jarayonda</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Bajarilgan</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Bekor qilingan</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Filtrlash
+                    </button>
+                    <a href="{% url 'plan_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Tozalash
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Plans List -->
+    <div class="row">
+        {% for plan in page_obj %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card plan-card h-100 {% if plan.is_overdue %}border-danger{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            {% if plan.priority == 'urgent' %}
+                                <span class="badge bg-danger me-2">Shoshilinch</span>
+                            {% elif plan.priority == 'high' %}
+                                <span class="badge bg-warning me-2">Yuqori</span>
+                            {% elif plan.priority == 'medium' %}
+                                <span class="badge bg-info me-2">O'rtacha</span>
+                            {% else %}
+                                <span class="badge bg-secondary me-2">Past</span>
+                            {% endif %}
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'plan_detail' plan.id %}"><i class="fas fa-eye me-2"></i>Ko'rish</a></li>
+                                <li><a class="dropdown-item" href="{% url 'plan_edit' plan.id %}"><i class="fas fa-edit me-2"></i>Tahrirlash</a></li>
+                                <li><a class="dropdown-item" href="{% url 'add_reminder' plan.id %}"><i class="fas fa-bell me-2"></i>Eslatma qo'shish</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'plan_delete' plan.id %}"><i class="fas fa-trash me-2"></i>O'chirish</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">{{ plan.title }}</h6>
+                        <p class="card-text text-muted">{{ plan.description|truncatechars:100 }}</p>
+                        
+                        <div class="plan-meta">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-calendar text-primary me-2"></i>
+                                <small class="text-muted">Muddat: {{ plan.due_date|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            {% if plan.is_overdue %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                    <small class="text-danger fw-bold">Muddati o'tgan!</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if plan.status == 'pending' %}
+                                    <span class="badge bg-warning">Kutilmoqda</span>
+                                {% elif plan.status == 'in_progress' %}
+                                    <span class="badge bg-info">Jarayonda</span>
+                                {% elif plan.status == 'completed' %}
+                                    <span class="badge bg-success">Bajarilgan</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Bekor qilingan</span>
+                                {% endif %}
+                            </div>
+                            <div class="btn-group" role="group">
+                                {% if plan.status != 'completed' %}
+                                    <form method="post" action="{% url 'update_plan_status' plan.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Bajarildi deb belgilash">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{% url 'plan_detail' plan.id %}" class="btn btn-primary btn-sm" title="Batafsil">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Rejalar topilmadi</h5>
+                    <p class="text-muted">Yangi reja yaratish uchun yuqoridagi tugmani bosing</p>
+                    <a href="{% url 'plan_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Birinchi rejani yaratish
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Sahifalar">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Birinchi</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Oldingi</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Keyingi</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Oxirgi</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.plan-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.plan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.plan-card.border-danger {
+    border-left: 4px solid #dc3545 !important;
+}
+
+.plan-meta i {
+    width: 16px;
+}
+</style>
+{% endblock %}

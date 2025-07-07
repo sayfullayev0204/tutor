@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'student_create' %}">Yangi talaba qo‘shish</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <h1 class="h3 fw-bold">{{ title }}</h1>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0"><i class="fas fa-home me-2"></i>{{ title }}</h6>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h5>Forma xatolarini tuzating:</h5>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <form method="post" action="{% url 'room_create' %}" id="room_form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.address|as_crispy_field }}
+                        {{ form.room_number|as_crispy_field }}
+                        {{ form.room_type|as_crispy_field }}
+                        {{ form.area|as_crispy_field }}
+                        {{ form.rent_price|as_crispy_field }}
+                        {{ form.latitude|as_crispy_field }}
+                        {{ form.longitude|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.has_kitchen|as_crispy_field }}
+                        {{ form.has_bathroom|as_crispy_field }}
+                        {{ form.has_internet|as_crispy_field }}
+                        {{ form.has_heating|as_crispy_field }}
+                        {{ form.condition|as_crispy_field }}
+                        {{ form.landlord_name|as_crispy_field }}
+                        {{ form.landlord_phone|as_crispy_field }}
+                        {{ form.notes|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="form-label">Xona joylashuvi</label>
+                        <div id="map" style="height: 400px; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <a href="{% if return_to == 'student_edit' %}{% url 'student_edit' pk=student_pk %}{% else %}{% url 'student_create' %}{% endif %}" class="btn btn-secondary me-md-2">Bekor qilish</a>
+                    <button type="submit" class="btn btn-primary" id="save_button">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+<script>
+let map, marker;
+
+function initMap() {
+    // Initialize map centered on Tashkent, Uzbekistan
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 38.833407, lng: 65.815295 },
+        zoom: 12
+    });
+
+    // Get latitude and longitude inputs
+    const latInput = document.querySelector('#id_latitude');
+    const lngInput = document.querySelector('#id_longitude');
+
+    // If existing coordinates are available, place marker
+    let initialLat = parseFloat(latInput.value) || 41.2995;
+    let initialLng = parseFloat(lngInput.value) || 69.2401;
+
+    marker = new google.maps.Marker({
+        position: { lat: initialLat, lng: initialLng },
+        map: map,
+        draggable: true
+    });
+
+    // Update inputs when marker is dragged
+    google.maps.event.addListener(marker, 'dragend', function(event) {
+        latInput.value = event.latLng.lat().toFixed(6);
+        lngInput.value = event.latLng.lng().toFixed(6);
+    });
+
+    // Update marker position when clicking on map
+    map.addEventListener('click', function(event) {
+        marker.setPosition(event.latLng);
+        latInput.value = event.latLng.lat().toFixed(6);
+        lngInput.value = event.latLng.lng().toFixed(6);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('#room_form');
+    const saveButton = document.querySelector('#save_button');
+
+    // Debug save button click
+    saveButton.addEventListener('click', function () {
+        console.log('Save button clicked');
+    });
+
+    // Debug form submission
+    form.addEventListener('submit', function (event) {
+        console.log('Form submission triggered');
+        const formData = new FormData(form);
+        console.log('Form data:', Object.fromEntries(formData));
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tadbirlarni tasdiqlash{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/events.css' %}" rel="stylesheet">
+<style>
+    .btn-success { background-color: #28a745 !important; border-color: #28a745 !important; }
+    .btn-danger { background-color: #dc3545 !important; border-color: #dc3545 !important; }
+    .btn-warning { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #212529 !important; }
+    .btn-info { background-color: #17a2b8 !important; border-color: #17a2b8 !important; }
+    .btn-primary { background-color: #007bff !important; border-color: #007bff !important; }
+    
+    .badge-success { background-color: #28a745 !important; }
+    .badge-danger { background-color: #dc3545 !important; }
+    .badge-warning { background-color: #ffc107 !important; color: #212529 !important; }
+    .badge-info { background-color: #17a2b8 !important; }
+    .badge-primary { background-color: #007bff 
+    !important; }
+    .badge-secondary { background-color: #6c757d !important; }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,.075) !important;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+        border: 1px solid rgba(0,0,0,.125) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-calendar-check"></i>
+                        Tadbirlarni tasdiqlash
+                    </h3>
+                    
+                    <!-- Filter buttons -->
+                    <div class="card-tools mt-2">
+                        <div class="btn-group">
+                            <a href="?status=" class="btn btn-sm {% if not status %}btn-light{% else %}btn-outline-light{% endif %}">
+                                Barchasi
+                            </a>
+                            <a href="?status=pending" class="btn btn-sm {% if status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                                Kutilmoqda
+                            </a>
+                            <a href="?status=approved" class="btn btn-sm {% if status == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+                                Tasdiqlangan
+                            </a>
+                            <a href="?status=rejected" class="btn btn-sm {% if status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                Rad etilgan
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Tadbir</th>
+                                    <th>Tashkilotchi</th>
+                                    <th>Sana</th>
+                                    <th>Kategoriya</th>
+                                    <th>Ishtirokchilar</th>
+                                    <th>Rasmlar</th>
+                                    <th>Status</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="mr-3">
+                                                <i class="fas fa-calendar-alt text-primary fa-2x"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ event.title|truncatechars:40 }}</strong><br>
+                                                <small class="text-muted">{{ event.location|truncatechars:30 }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-2" style="width: 35px; height: 35px; font-size: 14px; font-weight: bold;">
+                                                {{ event.organizer.first_name.0 }}{{ event.organizer.last_name.0 }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ event.organizer.get_full_name }}</strong><br>
+                                                <small class="text-muted">Tutor</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-calendar text-primary"></i>
+                                        {{ event.event_date|date:"d.m.Y" }}<br>
+                                        <small class="text-muted">{{ event.event_date|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">
+                                            {{ event.get_category_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary">
+                                            <i class="fas fa-users"></i> {{ event.participants_count }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-light text-dark">
+                                            <i class="fas fa-images"></i> {{ event.photos.count }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if event.status == 'pending' %}
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-clock"></i> Kutilmoqda
+                                            </span>
+                                        {% elif event.status == 'approved' %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i> Tasdiqlangan
+                                            </span>
+                                        {% elif event.status == 'rejected' %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-times"></i> Rad etilgan
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-info" 
+                                                    onclick="viewEvent({{ event.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if event.status == 'pending' %}
+                                            <button type="button" class="btn btn-sm btn-success" 
+                                                    onclick="approveEvent({{ event.id }})">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="rejectEvent({{ event.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if events.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="Sahifalar">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if events.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ events.previous_page_number }}{% if status %}&status={{ status }}{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in events.paginator.page_range %}
+                                    {% if events.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if events.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ events.next_page_number }}{% if status %}&status={{ status }}{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center p-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Tadbirlar topilmadi</h5>
+                        <p class="text-muted">Hozircha ko'rib chiqish uchun tadbirlar yo'q.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Tadbir tafsilotlari</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="eventDetails">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Yuklanmoqda...</span>
+                    </div>
+                    <p class="mt-2">Ma'lumotlar yuklanmoqda...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Yopish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approvalModalTitle">Tadbirni tasdiqlash</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="approvalForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="dean_comment">Dekan izohi:</label>
+                        <textarea id="dean_comment" class="form-control" rows="3" 
+                                  placeholder="Tadbir haqida izohingizni yozing..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary" id="approvalSubmitBtn">Tasdiqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle">Rasm</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="/placeholder.svg" class="img-fluid" alt="Tadbir rasmi">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Yopish</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log('Dean events script loading...');
+
+// Global variables
+let currentEventId = null;
+let currentAction = null;
+
+// Wait for document ready
+$(document).ready(function() {
+    console.log('Document ready, jQuery version:', $.fn.jquery);
+    
+    // Test Bootstrap modal functionality
+    if (typeof $.fn.modal === 'undefined') {
+        console.error('Bootstrap modal not loaded!');
+    } else {
+        console.log('Bootstrap modal loaded successfully');
+    }
+    
+    // Initialize approval form
+    $('#approvalForm').on('submit', function(e) {
+        e.preventDefault();
+        console.log('Approval form submitted');
+        handleApprovalSubmit();
+    });
+    
+    // Reset modal when closed
+    $('#approvalModal').on('hidden.bs.modal', function() {
+        console.log('Approval modal closed');
+        $('#dean_comment').val('');
+        currentEventId = null;
+        currentAction = null;
+    });
+    
+    // Add explicit close button handlers
+    $('.modal .close, .modal [data-dismiss="modal"]').on('click', function() {
+        console.log('Close button clicked');
+        const modalId = $(this).closest('.modal').attr('id');
+        console.log('Closing modal:', modalId);
+        $('#' + modalId).modal('hide');
+    });
+    
+    // Handle ESC key
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            console.log('ESC key pressed');
+            $('.modal.show').modal('hide');
+        }
+    });
+    
+    // Handle backdrop clicks
+    $('.modal').on('click', function(e) {
+        if (e.target === this) {
+            console.log('Backdrop clicked');
+            $(this).modal('hide');
+        }
+    });
+});
+
+// View event function
+function viewEvent(eventId) {
+    console.log('viewEvent called with ID:', eventId);
+    
+    // Reset modal content
+    $('#eventDetails').html(`
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Yuklanmoqda...</span>
+            </div>
+            <p class="mt-2">Ma'lumotlar yuklanmoqda...</p>
+        </div>
+    `);
+    
+    // Show modal immediately
+    $('#eventModal').modal('show');
+    
+    // Load content
+    $.ajax({
+        url: '/events/' + eventId + '/details/',
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(data) {
+            console.log('Event details loaded successfully');
+            $('#eventDetails').html(data.html);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading event details:', error);
+            $('#eventDetails').html(
+                '<div class="alert alert-danger">' +
+                '<i class="fas fa-exclamation-triangle"></i> ' +
+                'Xatolik yuz berdi: ' + error +
+                '</div>'
+            );
+        }
+    });
+}
+
+// Approve event function
+function approveEvent(eventId) {
+    console.log('approveEvent called with ID:', eventId);
+    
+    currentEventId = eventId;
+    currentAction = 'approve';
+    
+    $('#approvalModalTitle').text('Tadbirni tasdiqlash');
+    $('#approvalSubmitBtn').text('Tasdiqlash').removeClass().addClass('btn btn-success');
+    
+    $('#approvalModal').modal('show');
+}
+
+// Reject event function
+function rejectEvent(eventId) {
+    console.log('rejectEvent called with ID:', eventId);
+    
+    currentEventId = eventId;
+    currentAction = 'reject';
+    
+    $('#approvalModalTitle').text('Tadbirni rad etish');
+    $('#approvalSubmitBtn').text('Rad etish').removeClass().addClass('btn btn-danger');
+    
+    $('#approvalModal').modal('show');
+}
+
+// Handle approval submit
+function handleApprovalSubmit() {
+    console.log('handleApprovalSubmit called');
+    
+    if (!currentEventId || !currentAction) {
+        console.error('Missing eventId or action');
+        showNotification('Xatolik: Ma\'lumotlar to\'liq emas!', 'danger');
+        return;
+    }
+    
+    const deanComment = $('#dean_comment').val().trim();
+    const submitBtn = $('#approvalSubmitBtn');
+    
+    // Show loading
+    submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-2"></span>Yuklanmoqda...');
+    
+    // Get CSRF token
+    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+    
+    // Send request
+    $.ajax({
+        url: '/events/' + currentEventId + '/approve/',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        },
+        data: {
+            'action': currentAction,
+            'dean_comment': deanComment,
+            'csrfmiddlewaretoken': csrfToken
+        },
+        success: function(data) {
+            console.log('Approval successful:', data);
+            
+            if (data.success) {
+                $('#approvalModal').modal('hide');
+                
+                const message = currentAction === 'approve' ? 
+                    'Tadbir muvaffaqiyatli tasdiqlandi!' : 
+                    'Tadbir rad etildi!';
+                const type = currentAction === 'approve' ? 'success' : 'warning';
+                
+                showNotification(message, type);
+                
+                // Reload page after delay
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showNotification('Xatolik: ' + (data.error || 'Noma\'lum xatolik'), 'danger');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Approval error:', error);
+            showNotification('Xatolik yuz berdi: ' + error, 'danger');
+        },
+        complete: function() {
+            // Reset button
+            submitBtn.prop('disabled', false);
+            if (currentAction === 'approve') {
+                submitBtn.html('Tasdiqlash').removeClass().addClass('btn btn-success');
+            } else {
+                submitBtn.html('Rad etish').removeClass().addClass('btn btn-danger');
+            }
+        }
+    });
+}
+
+// Show image modal
+function showImageModal(imageUrl, caption) {
+    console.log('showImageModal called');
+    $('#modalImage').attr('src', imageUrl);
+    $('#imageModalTitle').text(caption || 'Tadbir rasmi');
+    $('#imageModal').modal('show');
+}
+
+// Close modal function (manual)
+function closeModal(modalId) {
+    console.log('closeModal called for:', modalId);
+    $('#' + modalId).modal('hide');
+}
+
+// Show notification
+function showNotification(message, type) {
+    console.log('showNotification:', message, type);
+    
+    // Remove existing notifications
+    $('.notification-alert').remove();
+    
+    const alertClass = 'alert-' + type;
+    let icon = 'fas fa-info-circle';
+    
+    if (type === 'success') icon = 'fas fa-check-circle';
+    else if (type === 'danger') icon = 'fas fa-exclamation-triangle';
+    else if (type === 'warning') icon = 'fas fa-exclamation-circle';
+    
+    const notification = $(`
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed notification-alert" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="${icon} mr-2"></i>
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(function() {
+        notification.alert('close');
+    }, 5000);
+}
+
+// Test functions on page load
+console.log('All functions defined');
+
+// Test modal functionality
+function testModal() {
+    console.log('Testing modal...');
+    $('#eventModal').modal('show');
+    setTimeout(function() {
+        $('#eventModal').modal('hide');
+    }, 2000);
+}
+
+// Add test button (temporary)
+$(document).ready(function() {
+    // Uncomment this line to add a test button
+    // $('body').append('<button onclick="testModal()" style="position:fixed;top:10px;left:10px;z-index:10000;">Test Modal</button>');
+});
+</script>
+{% endblock %}

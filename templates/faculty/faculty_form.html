@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'faculty_list' %}">Fakultetlar</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 fw-bold">{{ title }}</h1>
+                <a href="{% url 'faculty_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Orqaga
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-university me-2"></i>
+                        {% if faculty %}Fakultetni tahrirlash{% else %}Yangi fakultet yaratish{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label fw-medium">
+                                        {{ form.name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.dean.id_for_label }}" class="form-label fw-medium">
+                                        {{ form.dean.label }}
+                                    </label>
+                                    {{ form.dean }}
+                                    {% if form.dean.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.dean.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-medium">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">Fakultet haqida qisqacha ma'lumot</small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                {% if faculty %}
+                                    <a href="{% url 'faculty_delete' faculty.id %}" class="btn btn-outline-danger" 
+                                       onclick="return confirm('Haqiqatan ham bu fakultetni o\'chirmoqchimisiz?')">
+                                        <i class="fas fa-trash me-2"></i>O'chirish
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{% url 'faculty_list' %}" class="btn btn-outline-secondary me-2">
+                                    <i class="fas fa-times me-2"></i>Bekor qilish
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if faculty %}Yangilash{% else %}Yaratish{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>
+{% endblock %}

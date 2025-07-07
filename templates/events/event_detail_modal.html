@@ -1,0 +1,252 @@
+<div class="event-detail-content">
+    <div class="row">
+        <div class="col-md-8">
+            <h5><i class="fas fa-calendar-alt text-primary"></i> Tadbir ma'lumotlari</h5>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td width="30%"><strong>Nomi:</strong></td>
+                    <td>{{ event.title }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Kategoriya:</strong></td>
+                    <td>
+                        <span class="badge badge-info">{{ event.get_category_display }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Sana:</strong></td>
+                    <td>{{ event.event_date|date:"d.m.Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Joy:</strong></td>
+                    <td>{{ event.location }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Ishtirokchilar:</strong></td>
+                    <td>
+                        <span class="badge badge-secondary">{{ event.participants_count }} kishi</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Yaratilgan:</strong></td>
+                    <td>{{ event.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="col-md-4">
+            <h5><i class="fas fa-user text-primary"></i> Tashkilotchi</h5>
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px; font-size: 18px; font-weight: bold;">
+                            {{ event.organizer.first_name.0 }}{{ event.organizer.last_name.0 }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ event.organizer.get_full_name }}</h6>
+                            <small class="text-muted">Tutor</small>
+                        </div>
+                    </div>
+                    
+                    <h6><i class="fas fa-info-circle text-primary"></i> Status</h6>
+                    <div class="text-center">
+                        {% if event.status == 'pending' %}
+                            <span class="badge badge-warning badge-lg">
+                                <i class="fas fa-clock"></i> Kutilmoqda
+                            </span>
+                        {% elif event.status == 'approved' %}
+                            <span class="badge badge-success badge-lg">
+                                <i class="fas fa-check"></i> Tasdiqlangan
+                            </span>
+                        {% elif event.status == 'rejected' %}
+                            <span class="badge badge-danger badge-lg">
+                                <i class="fas fa-times"></i> Rad etilgan
+                            </span>
+                        {% endif %}
+                        
+                        {% if event.reviewed_by %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Ko'rib chiqdi: {{ event.reviewed_by.get_full_name }}<br>
+                                Sana: {{ event.reviewed_at|date:"d.m.Y H:i" }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+        <div class="col-12">
+            <h5><i class="fas fa-align-left text-primary"></i> Tadbir haqida</h5>
+            <div class="card">
+                <div class="card-body">
+                    <p class="mb-0">{{ event.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if event.dean_comment %}
+    <hr>
+    <div class="row">
+        <div class="col-12">
+            <h5><i class="fas fa-comment text-warning"></i> Dekan izohi</h5>
+            <div class="alert alert-warning">
+                <p class="mb-0">{{ event.dean_comment|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if event.photos.exists %}
+    <hr>
+    <div class="row">
+        <div class="col-12">
+            <h5><i class="fas fa-images text-primary"></i> Tadbir rasmlari ({{ event.photos.count }})</h5>
+            <div class="row">
+                {% for photo in event.photos.all %}
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <div class="card">
+                        <img src="{{ photo.photo.url }}" class="card-img-top" alt="Tadbir rasmi" 
+                             style="height: 200px; object-fit: cover; cursor: pointer;"
+                             onclick="showImageModal('{{ photo.photo.url }}', '{{ photo.caption }}')">
+                        {% if photo.caption %}
+                        <div class="card-body p-2">
+                            <small class="text-muted">{{ photo.caption }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.event-description {
+    background: #f8f9fc;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.dean-comment {
+    background: #fff3cd;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.status-info {
+    background: #f8f9fc;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.event-photo:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+.badge-lg {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.event-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e3f2fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #4e73df;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+/* Modal close button styles */
+.modal .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    background: transparent;
+    border: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.modal .close:hover {
+    opacity: 0.75;
+}
+
+.modal .close:focus {
+    outline: none;
+    opacity: 0.75;
+}
+</style>
+
+<script>
+// Ensure image modal works within the detail modal
+function showImageModal(imageUrl, caption) {
+    console.log('showImageModal called from detail modal');
+    
+    // Create a new modal for the image
+    const imageModalHtml = `
+        <div class="modal fade" id="detailImageModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${caption || 'Tadbir rasmi'}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center p-0">
+                        <img src="${imageUrl}" class="img-fluid" alt="Tadbir rasmi" style="max-height: 70vh; width: auto;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Yopish</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing image modal if any
+    $('#detailImageModal').remove();
+    
+    // Add new modal to body
+    $('body').append(imageModalHtml);
+    
+    // Show the modal
+    $('#detailImageModal').modal('show');
+    
+    // Clean up when closed
+    $('#detailImageModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+</script>

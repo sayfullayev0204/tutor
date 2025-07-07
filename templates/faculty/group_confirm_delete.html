@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Guruhni o'chirish{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'group_list' %}">Guruhlar</a></li>
+                    <li class="breadcrumb-item active">O'chirish</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Guruhni o'chirish</h1>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-trash me-2"></i>Tasdiqlash</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi.
+                    </div>
+                    
+                    <p class="mb-3">Siz <strong>"{{ group.name }}"</strong> guruhini o'chirmoqchisiz.</p>
+                    
+                    <div class="mb-3">
+                        <strong>Bu guruhda:</strong>
+                        <ul class="mt-2">
+                            <li>{{ group.students.count }} ta talaba</li>
+                            <li>Fakultet: {{ group.faculty.name }}</li>
+                            {% if group.tutor %}
+                                <li>Tutor: {{ group.tutor.get_full_name }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    {% if group.students.count > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Bu guruhda talabalar mavjud. Guruhni o'chirishdan oldin barcha talabalarni boshqa guruhga o'tkazing.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'group_detail' group.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Bekor qilish
+                            </a>
+                            <button type="submit" class="btn btn-danger" {% if group.students.count > 0 %}disabled{% endif %}>
+                                <i class="fas fa-trash me-2"></i>Ha, o'chirish
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

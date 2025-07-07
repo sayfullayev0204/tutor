@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tekshiruvlarni tasdiqlash{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/housing.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        Tekshiruvlarni tasdiqlash
+                    </h3>
+                    
+                    <!-- Filter buttons -->
+                    <div class="card-tools">
+                        <div class="btn-group">
+                            <a href="?status=" class="btn btn-sm {% if not status %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Barchasi
+                            </a>
+                            <a href="?status=pending" class="btn btn-sm {% if status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                                Kutilmoqda
+                            </a>
+                            <a href="?status=approved" class="btn btn-sm {% if status == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+                                Tasdiqlangan
+                            </a>
+                            <a href="?status=rejected" class="btn btn-sm {% if status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                Rad etilgan
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Talaba</th>
+                                    <th>Xona</th>
+                                    <th>Tekshiruvchi</th>
+                                    <th>Sana</th>
+                                    <th>Ball</th>
+                                    <th>Status</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inspection in page_obj %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                {{ inspection.student.first_name.0 }}{{ inspection.student.last_name.0 }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ inspection.student.full_name }}</strong><br>
+                                                <small class="text-muted">{{ inspection.student.group.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if inspection.room %}
+                                            <i class="fas fa-home text-primary"></i>
+                                            {{ inspection.room.address|truncatechars:30 }}<br>
+                                            <small class="text-muted">Xona: {{ inspection.room.room_number|default:"N/A" }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Ma'lumot yo'q</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user-check text-info"></i>
+                                        {{ inspection.inspector.get_full_name }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-calendar"></i>
+                                        {{ inspection.inspection_date|date:"d.m.Y" }}<br>
+                                        <small class="text-muted">{{ inspection.inspection_date|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-lg 
+                                            {% if inspection.overall_score >= 8 %}badge-success
+                                            {% elif inspection.overall_score >= 6 %}badge-warning
+                                            {% else %}badge-danger{% endif %}">
+                                            {{ inspection.overall_score }}/10
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if inspection.status == 'pending' %}
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-clock"></i> Kutilmoqda
+                                            </span>
+                                        {% elif inspection.status == 'approved' %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i> Tasdiqlangan
+                                            </span>
+                                        {% elif inspection.status == 'rejected' %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-times"></i> Rad etilgan
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-info" 
+                                                    onclick="viewInspection({{ inspection.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if inspection.status == 'pending' %}
+                                            <button type="button" class="btn btn-sm btn-success" 
+                                                    onclick="approveInspection({{ inspection.id }})">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="rejectInspection({{ inspection.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="Sahifalar">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center p-5">
+                        <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Tekshiruvlar topilmadi</h5>
+                        <p class="text-muted">Hozircha ko'rib chiqish uchun tekshiruvlar yo'q.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inspection Detail Modal -->
+<div class="modal fade" id="inspectionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tekshiruv tafsilotlari</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="inspectionDetails">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approvalModalTitle">Tekshiruvni tasdiqlash</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="approvalForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="dean_comment">Dekan izohi:</label>
+                        <textarea id="dean_comment" class="form-control" rows="3" 
+                                  placeholder="Tekshiruv haqida izohingizni yozing..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary" id="approvalSubmitBtn">Tasdiqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dean-inspections.js' %}"></script>
+{% endblock %}

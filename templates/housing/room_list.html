@@ -1,0 +1,638 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Talabalar turar joylari{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/housing.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-home"></i>
+                        Talabalar turar joylari
+                        <span class="badge-light ml-2 last-inspection text-muted">{{ total_rooms }}</span>
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search Form -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="Manzil yoki talaba ismi bo'yicha qidiring..."
+                                           value="{{ search }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        {% if search %}
+                                        <a href="{% url 'room_list' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-right">
+                                    <small class="text-muted">
+                                        <i class="fas fa-check-circle text-success"></i> {{ stats.inspected }} tekshirilgan
+                                        <i class="fas fa-clock text-warning ml-2"></i> {{ stats.not_inspected }} tekshirilmagan
+                                        <i class="fas fa-exclamation-triangle text-danger ml-2"></i> {{ stats.overdue }} muddati o'tgan
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Rooms List -->
+                    <div class="row">
+                        {% for item in rooms_with_students %}
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card room-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-map-marker-alt text-primary"></i>
+                                            {{ item.room.address|truncatechars:40 }}
+                                        </h6>
+                                        <span class="badge badge-{{ item.status_class }}">
+                                            {% if item.status == 'inspected' %}
+                                                <i class="fas fa-check"></i>
+                                            {% elif item.status == 'overdue' %}
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            {% else %}
+                                                <i class="fas fa-clock"></i>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="room-info mb-3">
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-home"></i> {{ item.room.get_room_type_display }}
+                                            {% if item.room.room_number %}
+                                                • Xona: {{ item.room.room_number }}
+                                            {% endif %}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-money-bill-wave"></i> {{ item.room.rent_price|floatformat:0 }} so'm
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-user"></i> {{ item.room.landlord_name }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="students-list mb-3">
+                                        <h6 class="text-muted mb-2">
+                                            <i class="fas fa-users"></i> Talabalar ({{ item.students|length }})
+                                        </h6>
+                                        {% for student in item.students %}
+                                        <div class="student-item">
+                                            <small>
+                                                <strong>{{ student.full_name }}</strong>
+                                                <span class="text-muted">({{ student.group.name }})</span>
+                                            </small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if item.last_inspection %}
+                                    <div class="last-inspection mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-check"></i>
+                                            Oxirgi tekshiruv: {{ item.last_inspection.inspection_date|date:"d.m.Y" }}
+                                        </small>
+                                    </div>
+                                    {% else %}
+                                    <div class="last-inspection mb-3" style="background-color: #ffc61b;">
+                                        <small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i>
+                                                Tekshirilmagan
+                                            </small>
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if item.pending_count > 0 %}
+                                    <div class="pending-info mb-3">
+                                        <span class="badge badge-info badge-sm">
+                                            <i class="fas fa-hourglass-half"></i> {{ item.pending_count }} kutilmoqda
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-light">
+                                    <div class="btn-group w-100">
+                                        <a href="{% url 'room_detail' item.room.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Ko'rish
+                                        </a>
+                                        <a href="{% url 'create_inspection' item.room.id %}" 
+                                           class="btn btn-warning btn-sm">
+                                            <i class="fas fa-clipboard-check"></i> Tekshirish
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Xonalar topilmadi</h5>
+                                <p class="text-muted">
+                                    {% if search %}
+                                        "{{ search }}" bo'yicha qidiruv natijasi topilmadi
+                                    {% else %}
+                                        Hozircha talabalar uchun xonalar ro'yxatga olinmagan
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if rooms_with_students.has_other_pages %}
+                    <nav aria-label="Sahifalar" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if rooms_with_students.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ rooms_with_students.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in rooms_with_students.paginator.page_range %}
+                                {% if rooms_with_students.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if rooms_with_students.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ rooms_with_students.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Housing CSS */
+.room-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e3e6f0;
+  border-radius: 8px;
+}
+
+.room-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #4e73df;
+}
+
+.inspection-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.info-box {
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.info-number {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #5a5c69;
+}
+
+.info-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #858796;
+  text-transform: uppercase;
+}
+
+.room-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.room-features .badge {
+  font-size: 0.7rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid #e3e6f0;
+  background: #fff;
+  position: relative;
+}
+
+.feature-item.available {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.feature-item.unavailable {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.feature-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-item span {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.feature-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.feature-status i {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.feature-status small {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4e73df;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #e3e6f0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -2rem;
+  top: 0.5rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.timeline-content {
+  background-color: #f8f9fc;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #4e73df;
+}
+
+.dean-comment {
+  background-color: #fff3cd;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border-left: 3px solid #ffc107;
+}
+
+.inspection-scores {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Form Styles */
+.score-input {
+  position: relative;
+}
+
+.form-range {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.score-display {
+  text-align: center;
+  font-weight: bold;
+  color: #4e73df;
+  font-size: 1.1rem;
+}
+
+.custom-file-label::after {
+  content: "Ko'rish";
+}
+
+#imagePreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e3e6f0;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .timeline {
+    padding-left: 1.5rem;
+  }
+
+  .timeline::before {
+    left: 0.75rem;
+  }
+
+  .timeline-marker {
+    left: -1.5rem;
+  }
+}
+
+/* Status Colors */
+.bg-pending {
+  background-color: #ffc107;
+}
+.bg-approved {
+  background-color: #28a745;
+}
+.bg-rejected {
+  background-color: #dc3545;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.room-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.feature-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Loading States */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Room Card Styles */
+.room-info {
+  border-left: 3px solid #e3e6f0;
+  padding-left: 0.75rem;
+}
+
+.students-list {
+  background-color: #f8f9fc;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e3e6f0;
+}
+
+.student-item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.student-item:last-child {
+  border-bottom: none;
+}
+
+.last-inspection {
+  background-color: #e8f5e8;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+
+.pending-info {
+  text-align: center;
+}
+
+.card-footer.bg-light {
+  background-color: #f8f9fc !important;
+  border-top: 1px solid #e3e6f0;
+}
+
+/* Badge improvements */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+}
+
+.badge-sm {
+  font-size: 0.7rem;
+  padding: 0.25em 0.5em;
+}
+
+/* Button improvements */
+.btn-group .btn {
+  flex: 1;
+}
+
+/* Search form */
+.input-group .btn {
+  border-color: #ced4da;
+}
+
+.input-group .btn:hover {
+  background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .col-lg-6.col-xl-4 {
+    margin-bottom: 1rem;
+  }
+
+  .room-card .card-body {
+    padding: 1rem;
+  }
+
+  .btn-group .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple notification for page refresh
+window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('refreshed') === 'true') {
+        // Show a simple success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+        alert.innerHTML = `
+            <i class="fas fa-sync-alt"></i> Ma'lumotlar yangilandi
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        `;
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

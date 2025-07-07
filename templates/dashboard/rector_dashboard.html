@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Rektor Boshqaruv Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 fw-bold mb-1"><i class="fas fa-crown me-2"></i>Rektor Boshqaruv Paneli</h1>
+            <p class="text-muted">Qarshi davlat texnika universiteti</p>
+        </div>
+    </div>
+    
+    <!-- Main Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div class="number">{{ faculties.count }}</div>
+                <div class="label">Fakultetlar</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="number">{{ total_students }}</div>
+                <div class="label">Jami talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="number">{{ renting_students }}</div>
+                <div class="label">Ijara xonadonida</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card info">
+                <div class="icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="number">{{ dormitory_students }}</div>
+                <div class="label">TTJ da yashovchi</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="number">{{ orphan_students }}</div>
+                <div class="label">Yetim talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-wheelchair"></i>
+                </div>
+                <div class="number">{{ disabled_students }}</div>
+                <div class="label">Nogironligi bor</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inspection Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-2x text-primary mb-2"></i>
+                    <h4 class="fw-bold text-primary">{{ inspections.count }}</h4>
+                    <p class="text-muted mb-0">Jami tekshirishlar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 class="fw-bold text-warning">{{ pending_inspections }}</h4>
+                    <p class="text-muted mb-0">Kutilayotgan</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="fw-bold text-success">{{ approved_inspections }}</h4>
+                    <p class="text-muted mb-0">Tasdiqlangan</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h4 class="fw-bold text-danger">{{ rejected_inspections }}</h4>
+                    <p class="text-muted mb-0">Rad etilgan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Faculties Overview -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-university me-2"></i>Fakultetlar ko'rinishi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fakultet</th>
+                                    <th>Dekan</th>
+                                    <th>Guruhlar</th>
+                                    <th>Talabalar</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for faculty in faculties %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ faculty.name }}</div>
+                                        </td>
+                                        <td>
+                                            {% if faculty.dean %}
+                                                {{ faculty.dean.get_full_name }}
+                                            {% else %}
+                                                <span class="text-muted">Tayinlanmagan</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ faculty.groups_count }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ faculty.students_count }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'faculty_detail' faculty.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions & System Info -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="quick-actions mb-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-bolt me-2"></i>Tezkor havolalar</h6>
+                <a href="{% url 'faculty_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-university"></i>
+                    Fakultetlar
+                </a>
+                <a href="{% url 'student_list' %}" class="btn btn-outline-success">
+                    <i class="fas fa-user-graduate"></i>
+                    Barcha talabalar
+                </a>
+                <a href="{% url 'statistics' %}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-bar"></i>
+                    Batafsil statistika
+                </a>
+                <a href="{% url 'inspection_list' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-clipboard-list"></i>
+                    Barcha tekshirishlar
+                </a>
+            </div>
+            
+            <!-- System Information -->
+            <div class="card">
+                <div class="card-header text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Tizim ma'lumotlari</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Bugungi sana</small>
+                        <div class="fw-bold">{% now "d.m.Y" %}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Joriy vaqt</small>
+                        <div class="fw-bold">{% now "H:i" %}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Tizim versiyasi</small>
+                        <div class="fw-bold">1.0.0</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Oxirgi yangilanish</small>
+                        <div class="fw-bold">{% now "d.m.Y" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

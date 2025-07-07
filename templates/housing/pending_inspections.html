@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Tasdiqlash kutilayotgan tekshirishlar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Tasdiqlash kutilayotgan</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-clock me-2"></i>Tasdiqlash kutilayotgan tekshirishlar</h1>
+        </div>
+    </div>
+    
+    <!-- Alert -->
+    <div class="alert alert-warning mb-4">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Bu tekshirishlar sizning tasdiqlashingizni kutmoqda. Har birini diqqat bilan ko'rib chiqing.
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="number">{{ inspections.count }}</div>
+                <div class="label">Kutilayotgan</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-smile"></i>
+                </div>
+                <div class="number">
+                    {% with good=0 %}
+                        {% for inspection in inspections %}
+                            {% if inspection.condition == 'good' %}
+                                {% with good=good|add:1 %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ good }}
+                    {% endwith %}
+                </div>
+                <div class="label">Yaxshi holat</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card info">
+                <div class="icon">
+                    <i class="fas fa-meh"></i>
+                </div>
+                <div class="number">
+                    {% with average=0 %}
+                        {% for inspection in inspections %}
+                            {% if inspection.condition == 'average' %}
+                                {% with average=average|add:1 %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ average }}
+                    {% endwith %}
+                </div>
+                <div class="label">O'rtacha holat</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-frown"></i>
+                </div>
+                <div class="number">
+                    {% with poor=0 %}
+                        {% for inspection in inspections %}
+                            {% if inspection.condition == 'poor' %}
+                                {% with poor=poor|add:1 %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ poor }}
+                    {% endwith %}
+                </div>
+                <div class="label">Yomon holat</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inspections List -->
+    <div class="card">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Tekshirishlar ro'yxati</h5>
+            <span class="badge bg-light text-dark">{{ inspections.count }} ta</span>
+        </div>
+        <div class="card-body">
+            {% if inspections %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Talaba</th>
+                                <th>Tekshiruvchi</th>
+                                <th>Sana</th>
+                                <th>Holat</th>
+                                <th>Izoh</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inspection in inspections %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-warning bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <span class="text-white fw-bold">{{ inspection.student.first_name|first }}{{ inspection.student.last_name|first }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ inspection.student.full_name }}</div>
+                                                <small class="text-muted">{{ inspection.student.group.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ inspection.inspector.get_full_name }}</td>
+                                    <td>
+                                        <div class="fw-medium">{{ inspection.inspection_date|date:"d.m.Y" }}</div>
+                                        <small class="text-muted">{{ inspection.inspection_date|date:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if inspection.condition == 'good' %}
+                                            <span class="condition-badge condition-good">Yaxshi</span>
+                                        {% elif inspection.condition == 'average' %}
+                                            <span class="condition-badge condition-average">O'rtacha</span>
+                                        {% else %}
+                                            <span class="condition-badge condition-poor">Yomon</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ inspection.comment|truncatechars:50 }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'inspection_detail' inspection.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'review_inspection' inspection.id %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="text-success">Barcha tekshirishlar ko'rib chiqilgan!</h5>
+                    <p class="text-muted">Tasdiqlash kutilayotgan tekshirishlar yo'q</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Nogironligi bor talabalar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Nogironligi bor talabalar</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-wheelchair me-2"></i>Nogironligi bor talabalar</h1>
+        </div>
+    </div>
+    
+    <!-- Alert -->
+    <div class="alert alert-warning mb-4">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Bu ro'yxatda nogironligi bor talabalar ko'rsatilgan. Ularga maxsus yordam va qo'llab-quvvatlash zarur.
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-wheelchair"></i>
+                </div>
+                <div class="number">{{ students.count }}</div>
+                <div class="label">Nogironligi bor</div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="stats-card danger">
+                <div class="icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="number">
+                    {% with orphan=0 %}
+                        {% for student in students %}
+                            {% if student.is_orphan %}
+                                {% with orphan=orphan|add:1 %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ orphan }}
+                    {% endwith %}
+                </div>
+                <div class="label">Yetim ham</div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="number">
+                    {% with renting=0 %}
+                        {% for student in students %}
+                            {% if student.is_renting %}
+                                {% with renting=renting|add:1 %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ renting }}
+                    {% endwith %}
+                </div>
+                <div class="label">Ijara xonadonida</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students List -->
+    <div class="card">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Nogironligi bor talabalar ro'yxati</h5>
+            <span class="badge bg-light text-dark">{{ students.count }} ta</span>
+        </div>
+        <div class="card-body">
+            {% if students %}
+                <!-- Search -->
+                <div class="mb-3">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input" placeholder="Talaba qidirish..." data-target="#studentsTable">
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>F.I.O</th>
+                                <th>Guruh</th>
+                                <th>Yashash</th>
+                                <th>Telefon</th>
+                                <th>Qo'shimcha</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-secondary bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-wheelchair text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ student.full_name }}</div>
+                                                <small class="text-muted">{{ student.get_gender_display }} • {{ student.birth_date|date:"d.m.Y" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ student.group.name }}</div>
+                                        <small class="text-muted">{{ student.group.faculty.name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if student.is_renting %}
+                                            <span class="badge bg-warning"><i class="fas fa-home me-1"></i>Ijara</span>
+                                            <div class="small text-muted mt-1">{{ student.address|truncatechars:25 }}</div>
+                                        {% elif student.lives_in_dormitory %}
+                                            <span class="badge bg-success"><i class="fas fa-building me-1"></i>TTJ</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Noma'lum</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ student.phone_number|default:"-" }}</td>
+                                    <td>
+                                        {% if student.is_orphan %}
+                                            <span class="badge bg-danger"><i class="fas fa-heart me-1"></i>Yetim</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_tutor and student.is_renting and student.group.tutor == user %}
+                                                <a href="{% url 'create_inspection' student.id %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-clipboard-check"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-wheelchair fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nogironligi bor talabalar yo'q</h5>
+                    <p class="text-muted">Sizning guruhlaringizda nogironligi bor talabalar mavjud emas</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
