@@ -59,25 +59,64 @@ def faculty_list(request):
     }
     return render(request, 'faculty/faculty_list.html', context)
 
+
 @login_required
-def faculty_detail(request, pk):
+def faculty_detail(request, faculty_id):
     user = request.user
+    faculty = get_object_or_404(Faculty, id=faculty_id)
     
-    if user.is_rector():
-        faculty = get_object_or_404(Faculty, pk=pk)
-    elif user.is_dean():
-        faculty = get_object_or_404(Faculty, pk=pk, id=user.faculty.id)
-    else:
-        faculty = get_object_or_404(Faculty, pk=pk)
+    # Permission check: Only rector or the faculty's dean can access
+    if not (user.is_rector() or (user.is_dean() and user.faculty == faculty)):
+        messages.error(request, "Sizda ushbu fakultet ma'lumotlarini ko'rish huquqi yo'q.")
+        return redirect('dashboard')
     
-    groups = faculty.groups.all()
+    # Compute faculty statistics manually
+    groups = Group.objects.filter(faculty=faculty)
+    groups_count = groups.count()
+    students_count = sum(group.students.count() for group in groups)
+    
+    # Fetch tutors and compute their statistics
+    tutors = User.objects.filter(
+        user_type='tutor',
+        assigned_groups__faculty=faculty
+    ).distinct().prefetch_related('assigned_groups__students__housing_inspections')
+    
+    tutors_data = []
+    for tutor in tutors:
+        tutor_groups = tutor.assigned_groups.filter(faculty=faculty)
+        tutor_groups_count = tutor_groups.count()
+        tutor_students_count = sum(group.students.count() for group in tutor_groups)
+        tutor_renting_count = sum(group.students.filter(is_renting=True).count() for group in tutor_groups)
+        tutor_inspections_count = sum(group.students.aggregate(count=Count('housing_inspections'))['count'] for group in tutor_groups)
+        
+        # Assign color based on renting and inspections
+        if tutor_renting_count > 0 and tutor_inspections_count > 0:
+            color_class = 'table-success'  # Green: Active in both
+        elif tutor_renting_count > 0 or tutor_inspections_count > 0:
+            color_class = 'table-warning'  # Yellow: Active in one
+        else:
+            color_class = 'table-danger'   # Red: Inactive in both
+        
+        tutors_data.append({
+            'id': tutor.id,
+            'full_name': tutor.get_full_name(),
+            'email': tutor.email or "Kiritilmagan",
+            'phone_number': tutor.phone_number or "Kiritilmagan",
+            'profile_picture': tutor.profile_picture,
+            'groups_count': tutor_groups_count,
+            'students_count': tutor_students_count,
+            'color_class': color_class,
+        })
     
     context = {
         'faculty': faculty,
-        'groups': groups,
+        'dean_name': faculty.dean.get_full_name() if faculty.dean else "Tayinlanmagan",
+        'groups_count': groups_count,
+        'students_count': students_count,
+        'tutors': tutors_data,
+        'title': f"{faculty.name} - Fakultet ma'lumotlari",
     }
     return render(request, 'faculty/faculty_detail.html', context)
-
 
 @rector_required
 def faculty_create(request):

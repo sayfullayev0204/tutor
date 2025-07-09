@@ -7,7 +7,7 @@ urlpatterns = [
     path('faculties/create/', views.faculty_create, name='faculty_create'),
     path('faculties/<int:pk>/edit/', views.faculty_edit, name='faculty_edit'),
     path('faculties/<int:pk>/delete/', views.faculty_delete, name='faculty_delete'),
-    
+    path('faculties/<int:faculty_id>/', views.faculty_detail, name='faculty_detail'),
     # Group URLs
     path('groups/', views.group_list, name='group_list'),
     path('groups/<int:pk>/', views.group_detail, name='group_detail'),
