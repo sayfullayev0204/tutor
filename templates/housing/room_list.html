@@ -47,9 +47,12 @@
                                         <i class="fas fa-check-circle text-success"></i> {{ stats.inspected }} tekshirilgan
                                         <i class="fas fa-clock text-warning ml-2"></i> {{ stats.not_inspected }} tekshirilmagan
                                         <i class="fas fa-exclamation-triangle text-danger ml-2"></i> {{ stats.overdue }} muddati o'tgan
+                                        <i class="text-success"><a href="{% url 'room_create' %}" class="btn btn-success">Xonadon qoshish</a>
+                                        </i>
                                     </small>
                                 </div>
                             </div>
+                          </div>
                         </div>
                     </form>
 

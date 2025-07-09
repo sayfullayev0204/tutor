@@ -299,29 +299,23 @@
     </div>
     {% endif %}
 </div>
-
 {% block extra_js %}
-{% if room.latitude and room.longitude %}
-<script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+{% if room.latitude is not None and room.longitude is not None %}
+<div id="map" style="height: 400px; width: 100%;"></div>
+
 <script>
 function initMap() {
-    // Use Django template variables for latitude and longitude
-    const roomLocation = { 
-        lat: {{ room.latitude|floatformat:6 }}, 
-        lng: {{ room.longitude|floatformat:6 }} 
-    };
+    // Django template variables - to'g'ri formatda o'tkazish
+    const lat = {{ room.latitude|stringformat:"f" }};
+    const lng = {{ room.longitude|stringformat:"f" }};
     
-    // Validate coordinates
-    if (isNaN(roomLocation.lat) || isNaN(roomLocation.lng)) {
-        console.error("Invalid coordinates:", roomLocation);
-        return;
-    }
-
+    console.log('Coordinates from DB:', lat, lng); // Debug uchun
+    
+    const roomLocation = { lat: lat, lng: lng };
     const map = new google.maps.Map(document.getElementById('map'), {
-        center: roomLocation,
         zoom: 15,
-        mapTypeControl: false,
-        streetViewControl: false
+        center: roomLocation,
+        mapTypeId: 'roadmap'
     });
 
     new google.maps.Marker({
@@ -331,6 +325,10 @@ function initMap() {
     });
 }
 </script>
+
+<!-- Google Maps API ni chaqirish (kalitni qo'shing) -->
+
+<script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
 {% endif %}
 {% endblock %}
 

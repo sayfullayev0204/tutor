@@ -27,7 +27,7 @@
                 <div class="icon">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
-                <div class="number">{{ tutors.count }}</div>
+                <div class="number">{{ tutors|length }}</div>
                 <div class="label">Jami tutorlar</div>
             </div>
         </div>
@@ -56,23 +56,23 @@
                         </thead>
                         <tbody>
                             {% for tutor in tutors %}
-                                <tr>
+                                <tr class="{{ tutor.color_class }}">
                                     <td>
-                                        <div class="col-md-3 text-center">
-                                        {% if tutor.profile_picture %}
-                                            <img src="{{ tutor.profile_picture.url }}" alt="{{ tutor.get_full_name }}" class="rounded-circle img-fluid" style="max-width: 50px;">
-                                        {% else %}
-                                            <img src="https://via.placeholder.com/150" alt="No Image" class="rounded-circle img-fluid" style="max-width: 150px;">
-                                        {% endif %}
-                                    </div>
+                                        <div class="text-center">
+                                            {% if tutor.profile_picture %}
+                                                <img src="{{ tutor.profile_picture.url }}" alt="{{ tutor.full_name }}" class="rounded-circle img-fluid" style="max-width: 50px;">
+                                            {% else %}
+                                                <img src="https://via.placeholder.com/50" alt="No Image" class="rounded-circle img-fluid" style="max-width: 50px;">
+                                            {% endif %}
+                                        </div>
                                     </td>
-                                    <td>{{ tutor.get_full_name }}</td>
-                                    <td>{{ tutor.email|default:"Kiritilmagan" }}</td>
-                                    <td>{{ tutor.faculty.name|default:"Tayinlanmagan" }}</td>
-                                    <td>{{ tutor.phone_number|default:"Kiritilmagan" }}</td>
-                                    <td>{{ tutor.groups_count }}</td>
-                                    <td>{{ tutor.students_count }}</td>
-                                    <td>
+                                    <td>{{ tutor.full_name }}</td>
+                                    <td>{{ tutor.email }}</td>
+                                    <td>{{ tutor.faculty_name }}</td>
+                                    <td>{{ tutor.phone_number }}</td>
+                                    <td><span class="badge bg-primary">{{ tutor.groups_count }}</span></td>
+                                    <td><span class="badge bg-success">{{ tutor.students_count }}</span></td>
+                                    <td style="text-align: center;">
                                         <a href="{% url 'tutor_detail' tutor.id %}" class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye"></i>
                                         </a>

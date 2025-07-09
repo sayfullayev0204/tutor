@@ -18,7 +18,7 @@
                 <div class="icon">
                     <i class="fas fa-university"></i>
                 </div>
-                <div class="number">{{ faculties.count }}</div>
+                <div class="number">{{ faculties|length }}</div>
                 <div class="label">Fakultetlar</div>
             </div>
         </div>
@@ -135,11 +135,7 @@
                                             <div class="fw-medium">{{ faculty.name }}</div>
                                         </td>
                                         <td>
-                                            {% if faculty.dean %}
-                                                {{ faculty.dean.get_full_name }}
-                                            {% else %}
-                                                <span class="text-muted">Tayinlanmagan</span>
-                                            {% endif %}
+                                            {{ faculty.dean_name }}
                                         </td>
                                         <td>
                                             <span class="badge bg-primary">{{ faculty.groups_count }}</span>
@@ -148,7 +144,7 @@
                                             <span class="badge bg-success">{{ faculty.students_count }}</span>
                                         </td>
                                         <td>
-                                            <a href="{% url 'faculty_detail' faculty.id %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </td>

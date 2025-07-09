@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistika{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                    <li class="breadcrumb-item active">Statistika</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold"><i class="fas fa-chart-bar me-2"></i>Batafsil statistika</h1>
+        </div>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="icon">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div class="number">{{ total_faculties }}</div>
+                <div class="label">Fakultetlar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="number">{{ total_groups }}</div>
+                <div class="label">Guruhlar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card info">
+                <div class="icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="number">{{ total_students }}</div>
+                <div class="label">Talabalar</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card warning">
+                <div class="icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="number">{{ total_inspections }}</div>
+                <div class="label">Tekshirishlar</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Categories -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-home fa-2x text-warning mb-2"></i>
+                    <h4 class="fw-bold text-warning">{{ renting_students }}</h4>
+                    <p class="text-muted mb-0">Ijara xonadonida</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-building fa-2x text-info mb-2"></i>
+                    <h4 class="fw-bold text-info">{{ dormitory_students }}</h4>
+                    <p class="text-muted mb-0">TTJ da yashovchi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-heart fa-2x text-danger mb-2"></i>
+                    <h4 class="fw-bold text-danger">{{ orphan_students }}</h4>
+                    <p class="text-muted mb-0">Yetim talabalar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-wheelchair fa-2x text-primary mb-2"></i>
+                    <h4 class="fw-bold text-primary">{{ disabled_students }}</h4>
+                    <p class="text-muted mb-0">Nogironligi bor</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gender Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-male fa-2x text-info mb-2"></i>
+                    <h4 class="fw-bold text-info">{{ male_students }}</h4>
+                    <p class="text-muted mb-0">Erkak talabalar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-female fa-2x text-success mb-2"></i>
+                    <h4 class="fw-bold text-success">{{ female_students }}</h4>
+                    <p class="text-muted mb-0">Ayol talabalar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspection Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 class="fw-bold text-warning">{{ pending_inspections }}</h4>
+                    <p class="text-muted mb-0">Kutilayotgan tekshirishlar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="fw-bold text-success">{{ approved_inspections }}</h4>
+                    <p class="text-muted mb-0">Tasdiqlangan tekshirishlar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h4 class="fw-bold text-danger">{{ rejected_inspections }}</h4>
+                    <p class="text-muted mb-0">Rad etilgan tekshirishlar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faculty-wise Statistics -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-university me-2"></i>Fakultetlar bo'yicha statistika</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fakultet</th>
+                                    <th>Dekan</th>
+                                    <th>Guruhlar</th>
+                                    <th>Talabalar</th>
+                                    <th>Ijara xonadonida</th>
+                                    <th>Tekshirishlar</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for faculty in faculty_stats %}
+                                    <tr>
+                                        <td>{{ faculty.name }}</td>
+                                        <td>{{ faculty.dean_name }}</td>
+                                        <td><span class="badge bg-primary">{{ faculty.groups_count }}</span></td>
+                                        <td><span class="badge bg-success">{{ faculty.students_count }}</span></td>
+                                        <td><span class="badge bg-warning">{{ faculty.renting_count }}</span></td>
+                                        <td><span class="badge bg-info">{{ faculty.inspections_count }}</span></td>
+                                        <td>
+                                            <a href="" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">Fakultetlar mavjud emas</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -22,16 +22,28 @@ def dashboard(request):
     return redirect('login')
 
 
-@rector_required
+
 def rector_dashboard(request):
-    faculties = Faculty.objects.all().annotate(
-        groups_count=Count('groups'),
-        students_count=Count('groups__students')
-    )
+    # Fetch faculties with related groups and students to optimize queries
+    faculties = Faculty.objects.prefetch_related('groups__students').all()
+    faculties_data = []
+    for faculty in faculties:
+        # Compute counts manually to avoid model property conflicts
+        groups_count = faculty.groups.count()
+        students_count = sum(group.students.count() for group in faculty.groups.all())
+        dean_name = faculty.dean.get_full_name() if faculty.dean else "Tayinlanmagan"
+        faculties_data.append({
+            'id': faculty.id,
+            'name': faculty.name,
+            'dean_name': dean_name,  # Precompute dean’s name
+            'groups_count': groups_count,
+            'students_count': students_count,
+        })
+    
     inspections = HousingInspection.objects.all()
     
     context = {
-        'faculties': faculties,
+        'faculties': faculties_data,  # List of dictionaries
         'total_students': Student.objects.count(),
         'renting_students': Student.objects.filter(is_renting=True).count(),
         'dormitory_students': Student.objects.filter(lives_in_dormitory=True).count(),
@@ -43,7 +55,6 @@ def rector_dashboard(request):
         'rejected_inspections': inspections.filter(status='rejected').count(),
     }
     return render(request, 'dashboard/rector_dashboard.html', context)
-
 
 @dean_required
 def dean_dashboard(request):
@@ -57,22 +68,33 @@ def dean_dashboard(request):
     students = Student.objects.filter(group__faculty=faculty)
     inspections = HousingInspection.objects.filter(student__group__faculty=faculty)
     
+    # Calculate student statistics
+    total_students = students.count()
+    renting_students = students.filter(is_renting=True).count()
+    dormitory_students = students.filter(lives_in_dormitory=True).count()
+    orphan_students = students.filter(is_orphan=True).count()
+    disabled_students = students.filter(has_disability=True).count()
+    
+    # Fallback for commuting and relatives
+    commuting_students = students.filter(is_renting=False, lives_in_dormitory=False).count()
+    relatives_students = 0  # Placeholder; adjust if a field like temporary_address indicates relatives
+    
     context = {
         'faculty': faculty,
         'groups': groups,
-        'total_students': students.count(),
-        'renting_students': students.filter(is_renting=True).count(),
-        'dormitory_students': students.filter(lives_in_dormitory=True).count(),
-        'orphan_students': students.filter(is_orphan=True).count(),
-        'disabled_students': students.filter(has_disability=True).count(),
+        'total_students': total_students,
+        'renting_students': renting_students,
+        'dormitory_students': dormitory_students,
+        'orphan_students': orphan_students,
+        'disabled_students': disabled_students,
+        'commuting_students': commuting_students,
+        'relatives_students': relatives_students,
         'inspections': inspections,
         'pending_inspections': inspections.filter(status='pending'),
         'approved_inspections': inspections.filter(status='approved').count(),
         'rejected_inspections': inspections.filter(status='rejected').count(),
     }
     return render(request, 'dashboard/dean_dashboard.html', context)
-
-
 @tutor_required
 def tutor_dashboard(request):
     user = request.user
@@ -117,12 +139,23 @@ def statistics(request):
     rejected_inspections = HousingInspection.objects.filter(status='rejected').count()
     
     # Faculty-wise statistics
-    faculty_stats = Faculty.objects.annotate(
-        students_count=Count('groups__students'),
-        groups_count=Count('groups'),
-        renting_count=Count('groups__students', filter=models.Q(groups__students__is_renting=True)),
-        inspections_count=Count('groups__students__housing_inspections')
-    )
+    faculties = Faculty.objects.prefetch_related('groups__students__housing_inspections').order_by('name')
+    faculty_stats = []
+    for faculty in faculties:
+        groups_count = faculty.groups.count()
+        students_count = sum(group.students.count() for group in faculty.groups.all())
+        renting_count = sum(group.students.filter(is_renting=True).count() for group in faculty.groups.all())
+        inspections_count = sum(group.students.aggregate(count=Count('housing_inspections'))['count'] for group in faculty.groups.all())
+        dean_name = faculty.dean.get_full_name() if faculty.dean else "Tayinlanmagan"
+        faculty_stats.append({
+            'id': faculty.id,
+            'name': faculty.name,
+            'dean_name': dean_name,
+            'groups_count': groups_count,
+            'students_count': students_count,
+            'renting_count': renting_count,
+            'inspections_count': inspections_count,
+        })
     
     context = {
         'total_students': total_students,

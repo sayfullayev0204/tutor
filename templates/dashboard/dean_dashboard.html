@@ -18,7 +18,7 @@
                 <div class="icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <div class="number">{{ groups.count }}</div>
+                <div class="number">{{ groups|length }}</div>
                 <div class="label">Guruhlar</div>
             </div>
         </div>
@@ -45,7 +45,7 @@
                 <div class="icon">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="number">{{ pending_inspections.count }}</div>
+                <div class="number">{{ pending_inspections|length }}</div>
                 <div class="label">Tasdiqlash kutilayotgan</div>
             </div>
         </div>
@@ -57,7 +57,7 @@
             <div class="card">
                 <div class="card-header text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Tasdiqlash kutilayotgan tekshirishlar</h5>
-                    <span class="badge bg-light text-dark">{{ pending_inspections.count }}</span>
+                    <span class="badge bg-light text-dark">{{ pending_inspections|length }}</span>
                 </div>
                 <div class="card-body">
                     {% if pending_inspections %}
@@ -81,7 +81,7 @@
                                                         <span class="text-white fw-bold">{{ inspection.student.first_name|first }}{{ inspection.student.last_name|first }}</span>
                                                     </div>
                                                     <div>
-                                                        <div class="fw-medium">{{ inspection.student.full_name }}</div>
+                                                        <div class="fw-medium">{{ inspection.student.get_full_name }}</div>
                                                         <small class="text-muted">{{ inspection.student.group.name }}</small>
                                                     </div>
                                                 </div>
@@ -137,7 +137,7 @@
                     {% endif %}
                     <div class="row text-center mt-3">
                         <div class="col-6">
-                            <div class="fw-bold text-primary fs-4">{{ groups.count }}</div>
+                            <div class="fw-bold text-primary fs-4">{{ groups|length }}</div>
                             <small class="text-muted">Guruhlar</small>
                         </div>
                         <div class="col-6">
@@ -181,7 +181,7 @@
                             <span class="fw-bold">{{ renting_students }}</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-warning" style="width: {% widthratio renting_students total_students 100 %}%"></div>
+                            <div class="progress-bar bg-warning" style="width: {% if total_students > 0 %}{% widthratio renting_students total_students 100 %}{% else %}0{% endif %}%"></div>
                         </div>
                     </div>
                     
@@ -191,7 +191,27 @@
                             <span class="fw-bold">{{ dormitory_students }}</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: {% widthratio dormitory_students total_students 100 %}%"></div>
+                            <div class="progress-bar bg-success" style="width: {% if total_students > 0 %}{% widthratio dormitory_students total_students 100 %}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>O'z uyidan qatnaydigan</span>
+                            <span class="fw-bold">{{ commuting_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: {% if total_students > 0 %}{% widthratio commuting_students total_students 100 %}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Yaqin qarindoshinikida</span>
+                            <span class="fw-bold">{{ relatives_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {% if total_students > 0 %}{% widthratio relatives_students total_students 100 %}{% else %}0{% endif %}%"></div>
                         </div>
                     </div>
                     
@@ -201,7 +221,7 @@
                             <span class="fw-bold">{{ orphan_students }}</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-danger" style="width: {% widthratio orphan_students total_students 100 %}%"></div>
+                            <div class="progress-bar bg-danger" style="width: {% if total_students > 0 %}{% widthratio orphan_students total_students 100 %}{% else %}0{% endif %}%"></div>
                         </div>
                     </div>
                     
@@ -211,7 +231,7 @@
                             <span class="fw-bold">{{ disabled_students }}</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-secondary" style="width: {% widthratio disabled_students total_students 100 %}%"></div>
+                            <div class="progress-bar bg-secondary" style="width: {% if total_students > 0 %}{% widthratio disabled_students total_students 100 %}{% else %}0{% endif %}%"></div>
                         </div>
                     </div>
                 </div>

@@ -10,25 +10,54 @@ from students.models import Student
 from django.contrib.auth.models import User
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from faculty.models import Faculty
+
+
 @login_required
 def faculty_list(request):
     user = request.user
     
+    # Initialize faculties queryset based on user role
     if user.is_rector():
-        faculties = Faculty.objects.annotate(
-            groups_count=Count('groups'),
-            students_count=Count('groups__students')
-        ).order_by('name')
+        faculties = Faculty.objects.prefetch_related('groups__students').order_by('name')
     elif user.is_dean():
         faculties = Faculty.objects.filter(id=user.faculty.id) if user.faculty else Faculty.objects.none()
     else:
         faculties = Faculty.objects.none()
     
+    # Compute data manually for each faculty
+    faculties_data = []
+    total_groups = 0
+    total_students = 0
+    deans_count = 0
+    
+    for faculty in faculties:
+        groups_count = faculty.groups.count()
+        students_count = sum(group.students.count() for group in faculty.groups.all())
+        dean_name = faculty.dean.get_full_name() if faculty.dean else "Tayinlanmagan"
+        if faculty.dean:
+            deans_count += 1
+        total_groups += groups_count
+        total_students += students_count
+        faculties_data.append({
+            'id': faculty.id,
+            'name': faculty.name,
+            'description': faculty.description,
+            'dean_name': dean_name,
+            'groups_count': groups_count,
+            'students_count': students_count,
+            'created_at': faculty.created_at,
+        })
+    
     context = {
-        'faculties': faculties,
+        'faculties': faculties_data,
+        'total_groups': total_groups,
+        'total_students': total_students,
+        'deans_count': deans_count,
     }
     return render(request, 'faculty/faculty_list.html', context)
-
 
 @login_required
 def faculty_detail(request, pk):
@@ -231,15 +260,21 @@ User = get_user_model()
 
 # Tutor Form
 class TutorForm(forms.ModelForm):
+    group = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Guruh",
+        required=False  # Allow no group selection
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'faculty', 'phone_number', 'profile_picture']
+        fields = ['username', 'first_name', 'last_name', 'email', 'group', 'phone_number', 'profile_picture']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Foydalanuvchi nomi'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ism'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Familiya'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
-            'faculty': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefon raqami'}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
@@ -248,17 +283,18 @@ class TutorForm(forms.ModelForm):
         faculty = kwargs.pop('faculty', None)
         super().__init__(*args, **kwargs)
         if faculty:
-            self.fields['faculty'].queryset = Faculty.objects.filter(id=faculty.id)
-            self.fields['faculty'].initial = faculty
+            self.fields['group'].queryset = Group.objects.filter(faculty=faculty)
         # Allow clearing the profile picture
         self.fields['profile_picture'].required = False
+
 # Tutor List View
 @login_required
 def tutor_list(request):
     user = request.user
     
+    # Initialize tutors queryset based on user role
     if user.is_rector():
-        tutors = User.objects.filter(user_type='tutor')
+        tutors = User.objects.filter(user_type='tutor').prefetch_related('assigned_groups__students__housing_inspections')
         print(f"Rektor: {tutors.count()} tutors found")
     elif user.is_dean():
         if not user.faculty:
@@ -268,20 +304,42 @@ def tutor_list(request):
             tutors = User.objects.filter(
                 user_type='tutor',
                 assigned_groups__faculty=user.faculty
-            ).distinct()
+            ).distinct().prefetch_related('assigned_groups__students__housing_inspections')
             print(f"Dekan: {tutors.count()} tutors found for faculty {user.faculty}")
     else:
         print(f"Foydalanuvchi {user} dashboard'ga yo'naltirilmoqda")
         return redirect('dashboard')
     
-    # Annotate with group and student counts
-    tutors = tutors.annotate(
-        groups_count=Count('assigned_groups'),
-        students_count=Count('assigned_groups__students')
-    )
+    # Compute data manually for each tutor
+    tutors_data = []
+    for tutor in tutors:
+        groups_count = tutor.assigned_groups.count()
+        students_count = sum(group.students.count() for group in tutor.assigned_groups.all())
+        renting_count = sum(group.students.filter(is_renting=True).count() for group in tutor.assigned_groups.all())
+        inspections_count = sum(group.students.aggregate(count=Count('housing_inspections'))['count'] for group in tutor.assigned_groups.all())
+        
+        # Determine color based on renting and inspections
+        if renting_count > 0 and inspections_count > 0:
+            color_class = 'table-success'  # Green: Active in both
+        elif renting_count > 0 or inspections_count > 0:
+            color_class = 'table-warning'  # Yellow: Active in one
+        else:
+            color_class = 'table-danger'   # Red: Inactive in both
+        
+        tutors_data.append({
+            'id': tutor.id,
+            'full_name': tutor.get_full_name(),
+            'email': tutor.email or "Kiritilmagan",
+            'faculty_name': tutor.faculty.name if tutor.faculty else "Tayinlanmagan",
+            'phone_number': tutor.phone_number or "Kiritilmagan",
+            'profile_picture': tutor.profile_picture,
+            'groups_count': groups_count,
+            'students_count': students_count,
+            'color_class': color_class,
+        })
     
     context = {
-        'tutors': tutors,
+        'tutors': tutors_data,
         'title': 'Tutorlar ro\'yxati',
     }
     return render(request, 'faculty/tutor_list.html', context)
@@ -307,6 +365,7 @@ def tutor_detail(request, tutor_id):
         'title': f"{tutor.get_full_name()} - Tutor ma'lumotlari",
     }
     return render(request, 'faculty/tutor_detail.html', context)
+
 # Tutor Create View
 @login_required
 def tutor_create(request):
@@ -327,6 +386,10 @@ def tutor_create(request):
             if user.is_dean():
                 tutor.faculty = user.faculty
             tutor.save()
+            # Assign the selected group to the tutor's assigned_groups
+            group = form.cleaned_data.get('group')
+            if group:
+                tutor.assigned_groups.add(group)
             messages.success(request, f"Tutor {tutor.get_full_name()} muvaffaqiyatli yaratildi.")
             return redirect('tutor_list')
     else:
