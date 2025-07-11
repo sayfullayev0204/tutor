@@ -1,26 +1,23 @@
 {% load static %}
-
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-link sidebar-toggle d-lg-none" type="button" onclick="toggleSidebar()">
+        <div class="d-flex align-items-center justify-content-between">
+            <button class="btn btn-link sidebar-close d-lg-none" type="button" onclick="toggleSidebar()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     </div>
     
     <div class="sidebar-content">
-        <div class="user-info">
-            <div class="text-center">
-                {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}"  class="profile-image mb-3" >
-                {% else %}
-                    <div class="avatar-placeholder">
-                        <i class="fas fa-user"></i>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="user-details text-center">
+        <div class="user-info text-center mb-4">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" class="profile-image mb-3">
+            {% else %}
+                <div class="profile-initials mb-3">
+                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                </div>
+            {% endif %}
+            <div class="user-details">
                 <div class="mb-1 fw-bold">{{ user.get_full_name }}</div>
                 <div class="badge bg-primary">
                     {% if user.is_rector %}
@@ -64,13 +61,14 @@
                             <span>Talabalar</span>
                         </a>
                     </li>
-
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'event_list' %}">
-                            <i class="fas fa-calendar-check"></i> Tadbirlar
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Tadbirlar</span>
                         </a>
                     </li>
-
+                    
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'plan_list' or request.resolver_match.url_name == 'plan_detail' or request.resolver_match.url_name == 'plan_create' %}active{% endif %}" href="{% url 'plan_list' %}">
                             <i class="fas fa-calendar-alt"></i>
@@ -119,9 +117,11 @@
                             <span>Talabalar ro'yxati</span>
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dean_events' %}">
-                            <i class="fas fa-calendar-check"></i> Tadbirlar
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Tadbirlar</span>
                         </a>
                     </li>
                 {% endif %}
@@ -168,13 +168,7 @@
 </div>
 
 <script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('collapsed');
-}
-
 function showFacultyInfo() {
-    // Faculty info modal or redirect
     {% if user.is_dean and user.faculty %}
         alert('Fakultet: {{ user.faculty.name }}\nGuruhlar: {{ user.faculty.groups.count }}\nTalabalar: {{ user.faculty.students_count }}');
     {% endif %}

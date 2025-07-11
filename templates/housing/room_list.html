@@ -12,12 +12,15 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">
                         <i class="fas fa-home"></i>
                         Talabalar turar joylari
                         <span class="badge-light ml-2 last-inspection text-muted">{{ total_rooms }}</span>
                     </h4>
+                    <a href="{% url 'room_create' %}" class="btn btn-light btn-sm">
+                      <i class="fas fa-plus"></i> Xonadon qo'shish
+                    </a>
                 </div>
                 
                 <div class="card-body">
@@ -47,7 +50,6 @@
                                         <i class="fas fa-check-circle text-success"></i> {{ stats.inspected }} tekshirilgan
                                         <i class="fas fa-clock text-warning ml-2"></i> {{ stats.not_inspected }} tekshirilmagan
                                         <i class="fas fa-exclamation-triangle text-danger ml-2"></i> {{ stats.overdue }} muddati o'tgan
-                                        <i class="text-success"><a href="{% url 'room_create' %}" class="btn btn-success">Xonadon qoshish</a>
                                         </i>
                                     </small>
                                 </div>

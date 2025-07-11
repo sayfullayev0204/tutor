@@ -72,7 +72,7 @@
                 <div class="row">
                     <div class="col-12">
                         <label class="form-label">Xona joylashuvi</label>
-                        <div id="map" style="height: 400px; width: 100%;"></div>
+                        <div id="map" style="height: 600px; width: 100%;"></div>
                     </div>
                 </div>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
@@ -90,54 +90,56 @@
 let map, marker;
 
 function initMap() {
-    // Initialize map centered on Tashkent, Uzbekistan
+    // O'zbekiston markazida xaritani boshlash
     map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 38.833407, lng: 65.815295 },
+        center: { lat: 38.833407, lng: 65.815295 }, // Toshkent koordinatalari
         zoom: 12
     });
 
-    // Get latitude and longitude inputs
-    const latInput = document.querySelector('#id_latitude');
-    const lngInput = document.querySelector('#id_longitude');
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
 
-    // If existing coordinates are available, place marker
+    // Mavjud koordinatalarni olish yoki standart koordinatalar
     let initialLat = parseFloat(latInput.value) || 41.2995;
     let initialLng = parseFloat(lngInput.value) || 69.2401;
 
+    // Marker yaratish
     marker = new google.maps.Marker({
         position: { lat: initialLat, lng: initialLng },
         map: map,
         draggable: true
     });
 
-    // Update inputs when marker is dragged
-    google.maps.event.addListener(marker, 'dragend', function(event) {
-        latInput.value = event.latLng.lat().toFixed(6);
-        lngInput.value = event.latLng.lng().toFixed(6);
+    // Marker harakatlanganda inputlarni yangilash
+    marker.addListener('dragend', function(event) {
+        updateCoordinates(event.latLng.lat(), event.latLng.lng());
     });
 
-    // Update marker position when clicking on map
-    map.addEventListener('click', function(event) {
+    // Xaritani bosganda marker pozitsiyasini o'zgartirish
+    map.addListener('click', function(event) {
         marker.setPosition(event.latLng);
-        latInput.value = event.latLng.lat().toFixed(6);
-        lngInput.value = event.latLng.lng().toFixed(6);
+        updateCoordinates(event.latLng.lat(), event.latLng.lng());
     });
+
+    // Inputlarni yangilash funksiyasi
+    function updateCoordinates(lat, lng) {
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('#room_form');
-    const saveButton = document.querySelector('#save_button');
-
-    // Debug save button click
-    saveButton.addEventListener('click', function () {
-        console.log('Save button clicked');
-    });
-
-    // Debug form submission
-    form.addEventListener('submit', function (event) {
-        console.log('Form submission triggered');
-        const formData = new FormData(form);
-        console.log('Form data:', Object.fromEntries(formData));
+// Formani yuborishni tekshirish
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('room_form');
+    
+    form.addEventListener('submit', function(e) {
+        // Faqat test uchun, aslida kerak emas
+        e.preventDefault();
+        console.log('Form submitted with coordinates:', {
+            lat: document.getElementById('id_latitude').value,
+            lng: document.getElementById('id_longitude').value
+        });
+        this.submit();
     });
 });
 </script>

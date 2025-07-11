@@ -32,6 +32,13 @@
             background-color: #f8fafc;
             color: #374151;
             line-height: 1.6;
+            margin: 0;
+            padding-left: 0;
+            transition: padding-left 0.3s ease;
+        }
+        
+        body.sidebar-open {
+            padding-left: 280px;
         }
         
         .btn-primary {
@@ -78,6 +85,10 @@
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
             box-shadow: var(--shadow-lg);
             padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1030;
         }
         
         .navbar-brand {
@@ -97,12 +108,69 @@
         }
         
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
             background: white;
-            border-radius: 12px;
+            border-right: 1px solid var(--border-color);
             box-shadow: var(--shadow);
             padding: 1.5rem;
-            position: sticky;
-            top: 2rem;
+            transition: left 0.3s ease;
+            z-index: 1040; /* Higher than navbar */
+            overflow-y: auto;
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        @media (min-width: 992px) {
+            body {
+                padding-left: 280px;
+            }
+            .sidebar {
+                left: 0;
+                top: 0;
+            }
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 991px) {
+            .sidebar {
+                left: -280px;
+                top: 0;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            body.sidebar-open {
+                padding-left: 0;
+            }
+            .content-container {
+                margin-left: 0;
+            }
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem; /* Moved to right side */
+            z-index: 1050; /* Higher than sidebar and navbar */
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: none;
+        }
+        
+        @media (max-width: 991px) {
+            .sidebar-toggle {
+                display: block;
+            }
         }
         
         .profile-image {
@@ -203,7 +271,7 @@
             color: #92400e;
         }
         
-        .condition-poor {
+        .condition-recovery {
             background-color: #fee2e2;
             color: #991b1b;
         }
@@ -309,18 +377,8 @@
             display: block;
         }
         
-        @media (max-width: 768px) {
-            .sidebar {
-                margin-bottom: 2rem;
-            }
-            
-            .stats-card {
-                margin-bottom: 1rem;
-            }
-            
-            .table-responsive {
-                border-radius: 8px;
-            }
+        .content-container {
+            padding-top: 80px; /* Account for navbar height */
         }
         
         .fade-in {
@@ -353,7 +411,14 @@
 <body>
     {% include 'navbar.html' %}
     
-    <div class="container-fluid py-4">
+    {% if user.is_authenticated %}
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        {% include 'sidebar.html' %}
+    {% endif %}
+    
+    <div class="container-fluid py-4 content-container">
         {% if messages %}
             <div class="row">
                 <div class="col-12">
@@ -370,10 +435,7 @@
         
         <div class="row">
             {% if user.is_authenticated %}
-                <div class="col-lg-3 col-xl-2">
-                    {% include 'sidebar.html' %}
-                </div>
-                <div class="col-lg-9 col-xl-10">
+                <div class="col-12" style="margin-top: 75px;">
                     <div class="fade-in">
                         {% block content %}{% endblock %}
                     </div>
@@ -391,8 +453,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        // Global JavaScript functions
         $(document).ready(function() {
+            // Auto-show sidebar on large screens for authenticated users
+            {% if user.is_authenticated %}
+                if (window.innerWidth >= 992) {
+                    $('body').addClass('sidebar-open');
+                    $('.sidebar').addClass('open');
+                }
+            {% endif %}
+            
             // Auto-hide alerts after 5 seconds
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
@@ -428,6 +497,12 @@
         // Hide loading spinner
         function hideLoading() {
             $('.loading').removeClass('show');
+        }
+        
+        // Toggle sidebar
+        function toggleSidebar() {
+            $('.sidebar').toggleClass('open');
+            $('body').toggleClass('sidebar-open');
         }
     </script>
     {% block extra_js %}{% endblock %}

@@ -3,72 +3,109 @@
 {% block title %}Tizimga kirish{% endblock %}
 
 {% block full_content %}
-<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5 col-xl-4">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <div class="bg-primary bg-gradient rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="fas fa-university fa-2x text-white"></i>
-                            </div>
-                            <h3 class="fw-bold">Tizimga kirish</h3>
-                            <p class="text-muted">QDTU Tutor boshqaruv tizimi</p>
-                        </div>
-                        
-                        <form method="post" class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            
-                            <div class="mb-3">
-                                <label for="id_username" class="form-label fw-medium">Foydalanuvchi nomi</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="fas fa-user text-muted"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0" id="id_username" name="username" required>
-                                </div>
-                                {% if form.username.errors %}
-                                    <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="id_password" class="form-label fw-medium">Parol</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="fas fa-lock text-muted"></i>
-                                    </span>
-                                    <input type="password" class="form-control border-start-0" id="id_password" name="password" required>
-                                    <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                {% if form.password.errors %}
-                                    <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            {% if form.non_field_errors %}
-                                <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    {{ form.non_field_errors.0 }}
-                                </div>
-                            {% endif %}
-                            
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Kirish
-                                </button>
-                            </div>
-                        </form>
-                        
-                        <div class="text-center mt-4">
-                            <small class="text-muted">
-                                Muammo bo'lsa administrator bilan bog'laning
-                            </small>
-                        </div>
+<style>
+    body {
+        background: url('/media/1751278887.jpg') no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+    }
+    .login-container {
+        max-width: 400px;
+        width: 100%;
+        margin: auto;
+        padding: 20px;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        left: -360px; /* Default for desktop */
+    }
+    .input-group-text {
+        background: #f8f9fa;
+    }
+    .btn-primary {
+        background: #667eea;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #764ba2;
+    }
+    .navbar {
+        display: none;
+    }
+    @media (max-width: 768px) { /* Adjusted to a more standard mobile breakpoint */
+        .card {
+            left: 0px; /* Mobile view */
+        }
+    }
+</style>
+
+<div class="d-flex align-items-center justify-content-center min-vh-100">
+    <div class="login-container">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-gradient rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px
+
+;">
+                        <i class="fas fa-university fa-lg text-white"></i>
                     </div>
+                    <h4 class="fw-bold">Tizimga kirish</h4>
+                    <p class="text-muted small">QDTU Tutor boshqaruv tizimi</p>
+                </div>
+                
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label fw-medium">Foydalanuvchi nomi</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0">
+                                <i class="fas fa-user text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="id_username" name="username" required>
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label fw-medium">Parol</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control border-start-0" id="id_password" name="password" required>
+                            <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Kirish
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Muammo bo'lsa administrator bilan bog'laning
+                    </small>
                 </div>
             </div>
         </div>
@@ -99,7 +136,7 @@
         'use strict';
         window.addEventListener('load', function() {
             var forms = document.getElementsByClassName('needs-validation');
-            var validation = Array.prototype.filter.call(forms, function(form) {
+            Array.prototype.filter.call(forms, function(form) {
                 form.addEventListener('submit', function(event) {
                     if (form.checkValidity() === false) {
                         event.preventDefault();
@@ -111,4 +148,4 @@
         }, false);
     })();
 </script>
-{% endblock %}
+{% endblock %}  
