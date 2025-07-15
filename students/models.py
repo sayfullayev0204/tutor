@@ -160,7 +160,7 @@ class Student(models.Model):
     temporary_address = models.TextField(blank=True, verbose_name="Yashash manzili")
     appartment_type = models.CharField(max_length=20, choices=APPARTMENT_TYPE_CHOICES, default='ttj', verbose_name="Yashash turi")
     family_type = models.CharField(max_length=20, choices=FAMILY_CHOICES, default='turmush_qurmagan', verbose_name="Oilaviy holati")
-    
+    bully_student = models.BooleanField(default=False, verbose_name="Bezori talaba")
     # Conditional ForeignKeys
     room = models.ForeignKey(
         'housing.Room',

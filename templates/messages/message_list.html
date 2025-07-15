@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Xabarlar</h2>
+        </div>
+        <div class="card-body">
+            <!-- Display Django messages as dismissible notifications -->
+            {% for django_message in django_messages %}
+                <div class="alert alert-{% if django_message.tags %}alert-{{ django_message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ django_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            {% if request.user.is_rector %}
+                <a href="{% url 'send_message' %}" class="btn btn-primary mt-3 " style="margin-bottom: 30px;">
+                    <i class="bi bi-plus-circle me-2"></i>Yangi xabar
+                </a>
+            {% endif %}
+            {% if messages_list %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Sarlavha</th>
+                                <th scope="col">Fakultet</th>
+                                <th scope="col">Yuboruvchi</th>
+                                <th scope="col">Holati</th>
+                                <th scope="col">Yaratilgan sana</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for message in messages_list %}
+                                <tr>
+                                    <td><a href="{% url 'message_detail' message.id %}" class="text-primary text-decoration-none">{{ message.title }}</a></td>
+                                    <td>{{ message.faculty.name|default:"Rektorga" }}</td>
+                                    <td>{{ message.sender.get_full_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if message.status == 'pending' %}bg-warning text-dark
+                                            {% elif message.status == 'read' %}bg-info
+                                            {% elif message.status == 'replied' %}bg-success
+                                            {% endif %}">
+                                            {{ message.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ message.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    Xabarlar yo'q.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<style>
+    .alert {
+        display: block;
+    }
+</style>
+{% endblock %}

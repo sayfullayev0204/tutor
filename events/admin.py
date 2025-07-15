@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Event, EventPhoto
-
+from .models import Message,MessageReply
 class EventPhotoInline(admin.TabularInline):
     model = EventPhoto
     extra = 0
@@ -34,3 +34,6 @@ class EventPhotoAdmin(admin.ModelAdmin):
     list_display = ['event', 'caption', 'uploaded_at']
     list_filter = ['uploaded_at']
     readonly_fields = ['uploaded_at']
+
+admin.site.register(Message)
+admin.site.register(MessageReply)

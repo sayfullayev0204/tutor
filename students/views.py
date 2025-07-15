@@ -6,11 +6,17 @@ from .models import Student, TTJ
 from housing.models import HousingInspection
 from .forms import StudentForm
 from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse, HttpResponse
+from .models import District
+from datetime import datetime
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 @login_required
 def student_list(request):
     user = request.user
     
+    # Determine queryset based on user role
     if hasattr(user, 'is_rector') and user.is_rector():
         students = Student.objects.all()
     elif hasattr(user, 'is_dean') and user.is_dean():
@@ -33,12 +39,27 @@ def student_list(request):
             Q(passport__icontains=search_query)
         )
     
+    # Filter by gender
+    gender = request.GET.get('gender')
+    if gender:
+        students = students.filter(gender=gender)
+    
+    # Filter by apartment type
+    appartment_type = request.GET.get('appartment_type')
+    if appartment_type:
+        students = students.filter(appartment_type=appartment_type)
+    
+    # Filter by bully_student
+    bully_student = request.GET.get('bully_student')
+    if bully_student in ['true', 'false']:
+        bully_student_bool = bully_student == 'true'
+        students = students.filter(bully_student=bully_student_bool)
+    
     context = {
         'students': students,
         'search_query': search_query,
     }
     return render(request, 'students/student_list.html', context)
-
 @login_required
 def student_detail(request, pk):
     user = request.user
@@ -244,11 +265,119 @@ def student_delete(request, pk):
     }
     return render(request, 'students/student_confirm_delete.html', context)
 
-from django.http import JsonResponse
-from .models import District
-
 def get_districts(request):
     region_id = request.GET.get('region')
     districts = District.objects.filter(region_id=region_id).values('id', 'name')
     return JsonResponse(list(districts), safe=False)
+
+
+
+@login_required
+def export_students_to_excel(request):
+    user = request.user
+    
+    # Determine queryset based on user role
+    if user.is_rector():
+        students = Student.objects.all()
+    elif user.is_dean():
+        students = Student.objects.filter(group__faculty=user.faculty) if user.faculty else Student.objects.none()
+    elif user.is_tutor():
+        students = Student.objects.filter(group__tutor=user)
+    else:
+        students = Student.objects.none()
+    
+    # Apply the same filters as in student_list
+    search_query = request.GET.get('search')
+    if search_query:
+        students = students.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(middle_name__icontains=search_query) |
+            Q(group__name__icontains=search_query) |
+            Q(student_id__icontains=search_query) |
+            Q(jshshir__icontains=search_query) |
+            Q(passport__icontains=search_query)
+        )
+    
+    gender = request.GET.get('gender')
+    if gender:
+        students = students.filter(gender=gender)
+    
+    appartment_type = request.GET.get('appartment_type')
+    if appartment_type:
+        students = students.filter(appartment_type=appartment_type)
+    
+    bully_student = request.GET.get('bully_student')
+    if bully_student in ['true', 'false']:
+        bully_student_bool = bully_student == 'true'
+        students = students.filter(bully_student=bully_student_bool)
+    
+    # Create Excel workbook and sheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Talabalar"
+    
+    # Define headers
+    headers = [
+        "ID", "F.I.O", "Jinsi", "Tug'ilgan sana", "Yoshi", "Guruh", "Fakultet", "Talaba ID", 
+        "JSHSHIR", "Pasport", "OTM", "Ta'lim turi", "To'lov turi", "Ta'lim shakli", 
+        "Shifr", "Mutaxassislik", "Fuqarolik", "Vatan", "Doimiy viloyat", "Doimiy tuman", 
+        "Vaqtincha viloyat", "Vaqtincha tuman", "Yashash manzili", "Yashash turi", 
+        "Oilaviy holati", "Telefon raqami", "Email", "Yetim", "Nogironligi bor", 
+        "Bezori talaba", "TTJ", "Ijara xona", "Yaratilgan sana"
+    ]
+    ws.append(headers)
+    
+    # Write student data
+    for student in students:
+        row = [
+            student.id,
+            student.full_name,
+            dict(Student.GENDER_CHOICES).get(student.gender, '-'),
+            student.birth_date.strftime('%d.%m.%Y') if student.birth_date else '-',
+            student.age if student.birth_date else '-',
+            student.group.name if student.group else '-',
+            student.group.faculty.name if student.group and student.group.faculty else '-',
+            student.student_id,
+            student.jshshir,
+            student.passport,
+            student.otm,
+            dict(Student.TALIM_CHOICES).get(student.talim_turi, '-'),
+            dict(Student.TULOV_CHOICES).get(student.tulov_turi, '-'),
+            dict(Student.TALIM_SHAKLI_CHOICES).get(student.talim_shakli, '-'),
+            student.shifr,
+            student.mutaxassislik.name if student.mutaxassislik else '-',
+            dict(Student.FUQARO_CHOICES).get(student.fuqaro, '-'),
+            student.country.name if student.country else '-',
+            student.const_region.name if student.const_region else '-',
+            student.const_district.name if student.const_district else '-',
+            student.temporary_region.name if student.temporary_region else '-',
+            student.temporary_district.name if student.temporary_district else '-',
+            student.temporary_address or '-',
+            dict(Student.APPARTMENT_TYPE_CHOICES).get(student.appartment_type, '-'),
+            dict(Student.FAMILY_CHOICES).get(student.family_type, '-'),
+            student.phone_number or '-',
+            student.email or '-',
+            'Ha' if student.is_orphan else 'Yo‘q',
+            'Ha' if student.has_disability else 'Yo‘q',
+            'Ha' if student.bully_student else 'Yo‘q',
+            student.ttj.name if student.ttj else '-',
+            student.room.address if student.room else '-',
+            student.created_at.strftime('%d.%m.%Y %H:%M') if student.created_at else '-'
+        ]
+        ws.append(row)
+    
+    # Adjust column widths
+    for col in range(1, len(headers) + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 15
+    
+    # Create HTTP response with Excel file
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Talabalar_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    
+    # Save workbook to response
+    wb.save(response)
+    return response
 

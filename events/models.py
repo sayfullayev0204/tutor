@@ -71,3 +71,90 @@ class EventPhoto(models.Model):
     
     def __str__(self):
         return f"{self.event.title} - Rasm"
+
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from accounts.models import User
+from faculty.models import Faculty
+
+class Message(models.Model):
+    STATUS_CHOICES = (
+        ('pending', _('Kutilmoqda')),
+        ('read', _('O\'qildi')),
+        ('replied', _('Javob berildi')),
+    )
+
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_messages',
+        verbose_name=_("Yuboruvchi")
+    )
+    faculty = models.ForeignKey(
+        Faculty,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        verbose_name=_("Fakultet")
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name=_("Sarlavha")
+    )
+    content = models.TextField(
+        verbose_name=_("Xabar matni")
+    )
+    image = models.ImageField(
+        upload_to='message_images/',
+        null=True,
+        blank=True,
+        verbose_name=_("Rasm")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name=_("Holati")
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Yaratilgan sana")
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Yangilangan sana")
+    )
+
+    class Meta:
+        verbose_name = _("Xabar")
+        verbose_name_plural = _("Xabarlar")
+
+    def __str__(self):
+        return f"{self.title} - {self.faculty.name}"
+
+class MessageReply(models.Model):
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE,
+        related_name='replies',
+        verbose_name=_("Xabar")
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='message_replies',
+        verbose_name=_("Yuboruvchi")
+    )
+    content = models.TextField(
+        verbose_name=_("Javob matni")
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Yaratilgan sana")
+    )
+
+    class Meta:
+        verbose_name = _("Xabar javobi")
+        verbose_name_plural = _("Xabar javoblari")
+
+    def __str__(self):
+        return f"Javob: {self.message.title} - {self.sender.get_full_name()}"

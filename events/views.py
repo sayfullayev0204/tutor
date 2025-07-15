@@ -239,3 +239,92 @@ def event_details_modal(request, event_id):
         return JsonResponse({'html': html})
     
     return JsonResponse({'error': 'Faqat AJAX so\'rov'}, status=400)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Message, MessageReply
+from .forms import MessageForm, MessageReplyForm
+from django.utils.translation import gettext_lazy as _
+from django.db import models
+@login_required
+def create_message(request):
+    if not (request.user.is_rector() or request.user.is_tutor()):
+        messages.error(request, _("Faqat rektor yoki tutor xabar yuborishi mumkin."))
+        return redirect('home')  # Adjust 'home' to your actual home URL
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            if request.user.is_tutor():
+                message.faculty = None  # Tutors send messages to rector, no faculty
+            message.save()
+            messages.success(request, _("Xabar muvaffaqiyatli yuborildi."))
+            return redirect('message_list')
+    else:
+        form = MessageForm(user=request.user)
+    
+    return render(request, 'messages/send_message.html', {'form': form})
+
+
+@login_required
+def message_list(request):
+    if request.user.is_rector():
+        # Rectors see messages they sent and messages from tutors (faculty is null)
+        messages_list = Message.objects.filter(
+            models.Q(sender=request.user) | models.Q(faculty__isnull=True)
+        ).order_by('-created_at')
+    elif request.user.is_dean():
+        if not request.user.faculty:
+            messages.error(request, _("Sizga fakultet biriktirilmagan. Xabarlarni ko'rish uchun fakultet biriktirilishi kerak."))
+            return redirect('home')
+        messages_list = Message.objects.filter(faculty=request.user.faculty).order_by('-created_at')
+    elif request.user.is_tutor():
+        # Tutors see only messages they sent
+        messages_list = Message.objects.filter(sender=request.user).order_by('-created_at')
+    else:
+        messages.error(request, _("Sizda xabarlarni ko'rish huquqi yo'q."))
+        return redirect('home')
+
+    return render(request, 'messages/message_list.html', {'messages_list': messages_list})
+    
+@login_required
+def message_detail(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    
+    # Access control
+    if not (
+        request.user.is_rector() or 
+        (request.user.is_dean() and request.user.faculty == message.faculty) or 
+        (request.user.is_tutor() and request.user == message.sender)
+    ):
+        messages.error(request, _("Sizda ushbu xabarni ko'rish huquqi yo'q."))
+        return redirect('message_list')
+    
+    # Mark as read for deans or rectors viewing relevant messages
+    if (request.user.is_dean() and message.status == 'pending' and request.user.faculty == message.faculty) or \
+       (request.user.is_rector() and message.status == 'pending' and message.faculty is None):
+        message.status = 'read'
+        message.save()
+    
+    # Handle replies (only deans and rectors can reply)
+    if request.method == 'POST' and (request.user.is_dean() or request.user.is_rector()):
+        form = MessageReplyForm(request.POST)
+        if form.is_valid():
+            reply = form.save(commit=False)
+            reply.sender = request.user
+            reply.message = message
+            reply.save()
+            message.status = 'replied'
+            message.save()
+            messages.success(request, _("Javob muvaffaqiyatli yuborildi."))
+            return redirect('message_detail', message_id=message.id)
+    else:
+        form = MessageReplyForm()
+    
+    return render(request, 'messages/message_detail.html', {
+        'message': message,
+        'form': form,
+    })

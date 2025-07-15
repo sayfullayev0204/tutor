@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ message.title }}</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+        <p><strong>Fakultet:</strong> {{ message.faculty.name|default:"Rektorga" }}</p>
+        <p><strong>Yuboruvchi:</strong> {{ message.sender.get_full_name }}</p>
+        <p><strong>Holati:</strong> {{ message.get_status_display }}</p>
+        <p><strong>Yaratilgan sana:</strong> {{ message.created_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>Xabar matni:</strong></p>
+        <p>{{ message.content }}</p>
+        </div>
+    </div>
+    {% if message.image %}
+    <div class="card mb-3">
+        <div class="card-body">
+        <p><strong>Rasm:</strong></p>
+        <img src="{{ message.image.url }}" style="max-width: 300px;">
+        </div>
+    </div>
+    {% endif %}
+    
+    <h3>Javoblar</h3>
+    {% for reply in message.replies.all %}
+        {% if request.user.is_rector or request.user.is_dean and request.user.faculty == message.faculty or request.user.is_tutor and request.user == reply.sender %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p><strong>{{ reply.sender.get_full_name }}</strong> - {{ reply.created_at|date:"Y-m-d H:i" }}</p>
+                    <p>{{ reply.content }}</p>
+                </div>
+            </div>
+        {% endif %}
+    {% empty %}
+        <p>Javoblar yo'q.</p>
+    {% endfor %}
+    
+    {% if request.user.is_dean %}
+        <h3>Javob yozish</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Javob yuborish</button>
+        </form>
+    {% endif %}
+    
+    <a href="{% url 'message_list' %}" class="btn btn-secondary mt-3">Orqaga</a>
+</div>
+{% endblock %}

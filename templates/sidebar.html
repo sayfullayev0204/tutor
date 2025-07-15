@@ -88,7 +88,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'tutor_list' %}active{% endif %}" href="{% url 'tutor_list' %}">
                             <i class="fas fa-chalkboard-teacher"></i>
-                            <span>Tutorlar</span>
+                            <span>Tyutorlar</span>
                         </a>
                     </li>
                     
@@ -124,6 +124,13 @@
                             <span>Tadbirlar</span>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'message_list' %}">
+                            <i class="fas fa-message"></i>
+                            <span>Xabarlar</span>
+                        </a>
+                    </li>
                 {% endif %}
                 
                 {% if user.is_rector %}
@@ -133,11 +140,22 @@
                             <span>Fakultetlar</span>
                         </a>
                     </li>
-                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}" href="{% url 'student_list' %}">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Talabalar ro'yxati</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" href="{% url 'statistics' %}">
                             <i class="fas fa-chart-bar"></i>
                             <span>Statistika</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'message_list' %}">
+                            <i class="fas fa-message"></i>
+                            <span>Xabarlar</span>
                         </a>
                     </li>
                 {% endif %}

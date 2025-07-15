@@ -11,5 +11,6 @@ urlpatterns = [
     path('create/', views.student_create, name='student_create'),
     path('<int:pk>/edit/', views.student_edit, name='student_edit'),
     path('<int:pk>/delete/', views.student_delete, name='student_delete'),
+    path('students/export/', views.export_students_to_excel, name='export_students_to_excel'),
     path('api/districts/', views.get_districts, name='get_districts'),
 ]

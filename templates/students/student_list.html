@@ -15,13 +15,18 @@
             </nav>
             <h1 class="h3 fw-bold"><i class="fas fa-user-graduate me-2"></i>Talabalar ro'yxati</h1>
         </div>
-        {% if user.is_tutor %}
-            <div class="col-auto">
+        <div class="col-auto">
+            {% if user.is_rector or user.is_dean or user.is_tutor %}
+                <a href="{% url 'export_students_to_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success me-2">
+                    <i class="fas fa-file-excel me-2"></i>Excelga eksport
+                </a>
+            {% endif %}
+            {% if user.is_tutor %}
                 <a href="{% url 'student_create' %}" class="btn btn-primary">
                     <i class="fas fa-user-plus me-2"></i>Yangi talaba
                 </a>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
     
     <!-- Search and Filters -->
@@ -47,6 +52,13 @@
                         <option value="ttj" {% if request.GET.appartment_type == 'ttj' %}selected{% endif %}>TTJ</option>
                         <option value="rent" {% if request.GET.appartment_type == 'rent' %}selected{% endif %}>Ijara</option>
                         <option value="home" {% if request.GET.appartment_type == 'home' %}selected{% endif %}>Uyda</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="bully_student" class="form-select">
+                        <option value="" {% if not request.GET.bully_student %}selected{% endif %}>Barcha talabalar</option>
+                        <option value="true" {% if request.GET.bully_student == 'true' %}selected{% endif %}>Bezori talaba</option>
+                        <option value="false" {% if request.GET.bully_student == 'false' %}selected{% endif %}>Oddiy talaba</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -121,7 +133,10 @@
                                             <span class="badge bg-danger me-1"><i class="fas fa-heart me-1"></i>Yetim</span>
                                         {% endif %}
                                         {% if student.has_disability %}
-                                            <span class="badge bg-secondary"><i class="fas fa-wheelchair me-1"></i>Nogiron</span>
+                                            <span class="badge bg-secondary me-1"><i class="fas fa-wheelchair me-1"></i>Nogiron</span>
+                                        {% endif %}
+                                        {% if student.bully_student %}
+                                            <span class="badge bg-dark"><i class="fas fa-exclamation-triangle me-1"></i>Bezori</span>
                                         {% endif %}
                                     </td>
                                     <td>
