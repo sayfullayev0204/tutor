@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Excel Faylni Yuklash{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="uz">
+<body>
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Boshqaruv paneli</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'excel_upload' %}">Excel</a></li>
+            </ol>
+        </nav>
+    <h1 class="h3 fw-bold">Excel fayli orqali talabalarni qoshish</h1>
+    
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h6 class="mb-0"><i class="fas fa-trash-alt me-2"></i>Excel faylni yuklash</h6>
+        </div>
+        <div class="card-body">
+    <div class="container">
+        <h1>Excel faylni yuklash</h1>
+        <form method="post" enctype="multipart/form-data" class="form-group">
+            {% csrf_token %}
+            <input type="file" name="excel_file" class="form-control" accept=".xls,.xlsx" required> 
+            <button type="submit" class="btn btn-primary" style="margin-top: 125px;">Yuklash</button>
+        </form>
+
+        {% if message %}
+            <div class="message {% if successful > 0 %}success{% else %}error{% endif %}">
+                <p>{{ message }}</p>
+                {% if errors %}
+                    <h3>Xatolar:</h3>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

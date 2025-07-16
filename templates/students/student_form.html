@@ -61,6 +61,8 @@
                         {{ form.fuqaro|as_crispy_field }}
                         {{ form.jshshir|as_crispy_field }}
                         {{ form.passport|as_crispy_field }}
+                        {{ form.phone_number|as_crispy_field }}
+                        {{ form.email|as_crispy_field }}
                     </div>
                     <div class="col-md-6">
                         <h5>Akademik ma'lumotlar</h5>
@@ -79,6 +81,7 @@
                         {{ form.country|as_crispy_field }}
                         {{ form.const_region|as_crispy_field }}
                         {{ form.const_district|as_crispy_field }}
+                        {{ form.address|as_crispy_field }}
                         {{ form.temporary_region|as_crispy_field }}
                         {{ form.temporary_district|as_crispy_field }}
                         {{ form.temporary_address|as_crispy_field }}
@@ -87,13 +90,18 @@
                         {{ form.ttj|as_crispy_field }}
                     </div>
                     <div class="col-md-6">
-                        <h5>Qo'shimcha ma'lumotlar</h5>
-                        {{ form.phone_number|as_crispy_field }}
-                        {{ form.email|as_crispy_field }}
+                        <h5>Ijtimoiy holat</h5>
                         {{ form.is_orphan|as_crispy_field }}
                         {{ form.has_disability|as_crispy_field }}
-                        {{ form.family_type|as_crispy_field }}
+                        {{ form.parent_status|as_crispy_field }}
+                        {{ form.is_in_social_protection|as_crispy_field }}
+                        {{ form.is_in_temir_daftar|as_crispy_field }}
+                        {{ form.is_in_women_daftar|as_crispy_field }}
+                        {{ form.is_in_youth_daftar|as_crispy_field }}
+                        {{ form.is_in_orphanage|as_crispy_field }}
+                        {{ form.parents_divorced|as_crispy_field }}
                         {{ form.bully_student|as_crispy_field }}
+                        {{ form.family_type|as_crispy_field }}
                     </div>
                 </div>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -121,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateFields() {
         if (appartmentType && roomField && ttjField && roomSelect && ttjSelect) {
-            console.log("Appartment type:", appartmentType.value); // Debug
+            console.log("Yashash turi:", appartmentType.value); // Debug
             if (appartmentType.value === 'rent') {
                 roomField.style.display = 'block';
                 ttjField.style.display = 'none';
@@ -161,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateDistricts(regionSelect, districtSelect) {
         if (!regionSelect || !districtSelect) {
-            console.error('Region or district select element not found');
+            console.error('Viloyat yoki tuman select elementi topilmadi');
             return;
         }
         const regionId = regionSelect.value;
@@ -169,16 +177,16 @@ document.addEventListener('DOMContentLoaded', function () {
             districtSelect.innerHTML = '<option value="" selected>---------</option>';
             return;
         }
-        console.log('Fetching districts for region:', regionId); // Debug
+        console.log('Tumanlar olinmoqda, viloyat ID:', regionId); // Debug
         fetch(`{% url 'get_districts' %}?region=${regionId}`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    throw new Error(`HTTP xatosi! Status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Received districts:', data); // Debug
+                console.log('Olingan tumanlar:', data); // Debug
                 districtSelect.innerHTML = '<option value="" selected>---------</option>';
                 data.forEach(district => {
                     const option = document.createElement('option');
@@ -191,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             })
             .catch(error => {
-                console.error('Error fetching districts:', error);
+                console.error('Tumanlarni olishda xato:', error);
                 districtSelect.innerHTML = '<option value="" selected>Xatolik yuz berdi</option>';
             });
     }

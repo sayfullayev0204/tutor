@@ -8,6 +8,16 @@ CONDITION_CHOICES = (
         ('poor', 'Yomon'),
     )
 
+NATION_CHOICES = (
+        ('uzbek', 'O\'zbek'),
+        ('russian', 'Rus'),
+        ('tajik', 'Tojik'),
+        ('kazakh', 'Qozoq'),
+        ('kyrgyz', 'Qirg\'iz'),
+        ('turkmen', 'Turkman'),
+        ('other', 'Boshqa'),
+    )
+
 class Mutaxassislik(models.Model):
     name = models.CharField(max_length=200, verbose_name="Mutaxassislik nomi")
     
@@ -150,7 +160,7 @@ class Student(models.Model):
     talim_turi = models.CharField(max_length=20, choices=TALIM_CHOICES, default='bakalavr', verbose_name="Ta'lim turi")
     tulov_turi = models.CharField(max_length=20, choices=TULOV_CHOICES, default='grant', verbose_name="To'lov turi")
     talim_shakli = models.CharField(max_length=20, choices=TALIM_SHAKLI_CHOICES, default='kunduzgi', verbose_name="Ta'lim shakli")
-    shifr = models.CharField(max_length=20, verbose_name="Shifr")  # Changed to CharField for flexibility
+    shifr = models.CharField(blank=True, max_length=20, verbose_name="Shifr")  # Changed to CharField for flexibility
     mutaxassislik = models.ForeignKey(Mutaxassislik, on_delete=models.CASCADE, verbose_name="Mutaxassislik")
     country = models.ForeignKey(Country, on_delete=models.CASCADE, verbose_name="Vatan")
     const_region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name='const_students', verbose_name="Doimiy viloyat")
@@ -161,6 +171,19 @@ class Student(models.Model):
     appartment_type = models.CharField(max_length=20, choices=APPARTMENT_TYPE_CHOICES, default='ttj', verbose_name="Yashash turi")
     family_type = models.CharField(max_length=20, choices=FAMILY_CHOICES, default='turmush_qurmagan', verbose_name="Oilaviy holati")
     bully_student = models.BooleanField(default=False, verbose_name="Bezori talaba")
+    parent_status = models.CharField(max_length=100, blank=True, null=True, verbose_name="Otasi yoki Onasi vafot etgan")
+    is_in_social_protection = models.BooleanField(default=False, verbose_name="Ijtimoiy himoya reestiriga kiritilgan")
+    is_in_temir_daftar = models.BooleanField(default=False, verbose_name="Temir daftarga kiritilgan oila farzandi")
+    is_in_women_daftar = models.BooleanField(default=False, verbose_name="Ayollar daftari ro'yxatiga kiritilgan")
+    is_in_youth_daftar = models.BooleanField(default=False, verbose_name="Yoshlar daftari ro'yxatiga kiritilgan")
+    is_in_orphanage = models.BooleanField(default=False, verbose_name="Mehribonlik uyi tarbiyalanuvchisi")
+    parents_divorced = models.BooleanField(default=False, verbose_name="Ota-onasi ajrashgan")
+    nation = models.CharField(
+        max_length=20, 
+        choices=NATION_CHOICES, 
+        default='uzbek', 
+        verbose_name="Millati"
+    )
     # Conditional ForeignKeys
     room = models.ForeignKey(
         'housing.Room',
