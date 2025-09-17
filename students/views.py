@@ -494,6 +494,7 @@ def export_students_to_excel(request):
     
     workbook.save(response)
     return response
+
 import pandas as pd
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -506,342 +507,305 @@ from datetime import datetime, date
 import os
 import uuid
 
+import pandas as pd
+from django.core.exceptions import ValidationError
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
+from students.models import Student, Mutaxassislik, Country, Region, District, TTJ
+from faculty.models import Faculty, Group
+from housing.models import Room
+from datetime import datetime, date
+import os
+import uuid
+import time
+import logging
+
+# Configure logging for debugging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def import_students_from_excel(file_path, user):
     try:
-        # Excel faylni o'qish, JSHSHIR va Tug'ilgan sana ni matn sifatida o'qish
-        df = pd.read_excel(file_path, dtype={'JSHSHIR': str, 'Jshshir': str, 'Tug\'ilgan sana': str})
-        
-        # 2-qatorni (index=1) tashlab ketish
-        if len(df) >= 2:
-            df = df.drop(1)
-            print("2-qator tashlab ketildi.")
-        else:
-            print("Eslatma: Faylda 2-qator mavjud emas, tashlab ketish amalga oshirilmadi.")
-        
-        # Kerakli va alternativ ustun nomlari
-        required_columns = {
-            'F.I.O': ['F.I.O', 'FIO', 'Ism'],
-            'JSHSHIR': ['JSHSHIR', 'Jshshir'],
-            'Pasport': ['Pasport', 'Passport'],
-            'Telefon raqami': ['Telefon raqami', 'Telefon', 'Phone'],
-            'Jinsi': ['Jinsi', 'Jins', 'Gender'],
-            'Tug\'ilgan sana': ['Tug\'ilgan sana', 'Tugilgan sana', 'Birth Date'],
-            'Mutaxassisligi': ['Mutaxassisligi', 'Mutaxassislik', 'Specialty'],
-            'Doimiy yashash manzili Viloyati': ['Doimiy yashash manzili Viloyati', 'Viloyat', 'Region', 'Doimiy viloyat'],
-            'Doimiy yashash manzili Tuman': ['Doimiy yashash manzili Tuman', 'Tuman', 'District', 'Doimiy tuman'],
-            'Vaqtincha yashash manzili Viloyat': ['Vaqtincha yashash manzili Viloyat', 'Vaqtincha viloyat', 'Temporary Region'],
-            'Vaqtincha yashash manzili Tuman': ['Vaqtincha yashash manzili Tuman', 'Vaqtincha tuman', 'Temporary District'],
-            'Vaqtincha yashash manzili Joriy manzili': ['Vaqtincha yashash manzili Joriy manzili', 'Joriy manzil', 'Temporary Address', 'Manzil'],
-            'Yashash turi': ['Yashash turi', 'Yashash', 'Residence Type'],
-            'Guruh': ['Guruh', 'Group'],
-            'O\'quv kursi': ['O\'quv kursi', 'Kurs', 'Course'],
-            'OTM': ['OTM', 'Otm', 'University'],
-            'To\'lov turi': ['To\'lov turi', 'Tulov turi', 'Payment Type'],
-            'Ta\'lim shakli': ['Ta\'lim shakli', 'Talim shakli', 'Education Form']
-        }
-        
-        # Mavjud ustunlarni aniqlash
-        actual_columns = {}
-        missing_columns = []
-        for key, aliases in required_columns.items():
-            found = False
-            for alias in aliases:
-                if alias in df.columns:
-                    actual_columns[key] = alias
-                    found = True
-                    break
-            if not found:
-                actual_columns[key] = None
-                missing_columns.append(key)
-        
-        if missing_columns:
-            print(f"Eslatma: Quyidagi ustunlar topilmadi va standart qiymatlar ishlatiladi: {', '.join(missing_columns)}")
-        
-        # Fakultetni yaratish yoki olish
-        faculty, _ = Faculty.objects.get_or_create(
-            name="Raqamli texnologiya va suniy intelekt",
-            defaults={'description': 'Raqamli texnologiyalar fakulteti'}
-        )
-        
-        # Xatolarni saqlash uchun ro'yxat
-        errors = []
+        xl = pd.ExcelFile(file_path)
         successful = 0
+        errors = []
         
-        # Har bir qatorni qayta ishlash
-        for index, row in df.iterrows():
-            try:
-                # Excel indexini tuzatish (2-qator tashlab ketilganligi uchun)
-                excel_row = index + 2 if index < 1 else index + 3
+        for sheet_name in xl.sheet_names:
+            logger.info(f"Sahifa o'qilmoqda: {sheet_name}")
+            df = xl.parse(sheet_name, dtype={'JSHSHIR': str, 'Jshshir': str, 'Tug\'ilgan sana': str})
+            
+            if len(df) >= 2:
+                df = df.drop(1).reset_index(drop=True)
+                logger.info(f"Sahifa {sheet_name}: 2-qator tashlab ketildi.")
+            
+            required_columns = {
+                'F.I.O': ['F.I.O', 'FIO', 'Ism'],
+                'JSHSHIR': ['JSHSHIR', 'Jshshir'],
+                'Pasport': ['Pasport', 'Passport'],
+                'Telefon raqami': ['Telefon raqami', 'Telefon', 'Phone'],
+                'Jinsi': ['Jinsi', 'Jins', 'Gender'],
+                'Tug\'ilgan sana': ['Tug\'ilgan sana', 'Tugilgan sana', 'Birth Date'],
+                'Mutaxassisligi': ['Mutaxassisligi', 'Mutaxassislik', 'Specialty'],
+                'Doimiy yashash manzili Viloyati': ['Doimiy yashash manzili Viloyati', 'Viloyati', 'Viloyat', 'Region', 'Doimiy viloyat'],
+                'Doimiy yashash manzili Tuman': ['Doimiy yashash manzili Tuman', 'Tuman', 'District', 'Doimiy tuman'],
+                'Vaqtincha yashash manzili Viloyat': ['Vaqtincha yashash manzili Viloyat', 'Vaqtincha yashash manzili Viloyati', 'Vaqtincha viloyat', 'Temporary Region'],
+                'Vaqtincha yashash manzili Tuman': ['Vaqtincha yashash manzili Tuman', 'Vaqtincha yashash manzili Tumani', 'Vaqtincha tuman', 'Temporary District'],
+                'Vaqtincha yashash manzili Joriy manzili': ['Vaqtincha yashash manzili Joriy manzili', 'Joriy manzili', 'Joriy manzil', 'Temporary Address', 'Manzil'],
+                'Yashash turi': ['Yashash turi', 'Yashash', 'Residence Type'],
+                'Guruh': ['Guruh', 'Group'],
+                'O\'quv kursi': ['O\'quv kursi', 'O\'quv kurs', 'Kurs', 'Course'],
+                'OTM': ['OTM', 'Otm', 'University'],
+                'To\'lov turi': ['To\'lov turi', 'To‘lov turi', 'Tulov turi', 'Payment Type'],
+                'Ta\'lim shakli': ['Ta\'lim shakli', 'Ta‘lim shakli', 'Talim shakli', 'Education Form'],
+                'Talaba ID': ['Talaba ID', 'Student ID'],
+                'Fakultet': ['Fakultet', 'Faculty'],
+                'Oilaviy holati': ['Oilaviy holati', 'Oilaviy holat', 'Family Status'],
+                'Millat': ['Millat', 'Nation'],
+                'Fuqarolik': ['Fuqarolik', 'Citizenship'],
+            }
+            
+            actual_columns = {}
+            missing_columns = []
+            for key, aliases in required_columns.items():
+                found = False
+                for alias in aliases:
+                    if alias in df.columns:
+                        actual_columns[key] = alias
+                        found = True
+                        break
+                if not found:
+                    actual_columns[key] = None
+                    missing_columns.append(key)
+            
+            if missing_columns:
+                logger.info(f"Sahifa {sheet_name}: Quyidagi ustunlar topilmadi va standart qiymatlar ishlatiladi: {', '.join(missing_columns)}")
+            
+            for index, row in df.iterrows():
+                if row.isnull().all() or pd.isna(row.get(actual_columns.get("F.I.O"))):
+                    continue
                 
-                # Talaba ID ni tekshirish
-                student_id = row[actual_columns.get("Talaba ID")] if actual_columns.get("Talaba ID") in df.columns else None
-                if pd.isna(student_id):
-                    student_id = Student.objects.count() + 1
-                    print(f"Qator {excel_row}: Talaba ID bo'sh. Avtomatik ID ({student_id}) ishlatildi.")
-                
-                # O'quv kursini tekshirish
-                course = row[actual_columns["O'quv kursi"]] if actual_columns["O'quv kursi"] else None
                 try:
-                    course = float(course)
-                    if not course.is_integer() or course < 1 or course > 4:
-                        course = 1
-                        errors.append(f"Qator {excel_row}: O'quv kursi noto'g'ri (1-4 oralig'ida bo'lishi kerak). Standart qiymat (1) ishlatildi.")
-                    else:
-                        course = int(course)
-                        print(f"Qator {excel_row}: O'quv kursi sifatida {course} ishlatildi.")
-                except (ValueError, TypeError):
-                    course = 1
-                    errors.append(f"Qator {excel_row}: O'quv kursi bo'sh yoki noto'g'ri formatda. Standart qiymat (1) ishlatildi.")
-                
-                # Mutaxassislikni yaratish yoki olish
-                mutaxassislik_name = row[actual_columns["Mutaxassisligi"]] if actual_columns["Mutaxassisligi"] else None
-                if pd.isna(mutaxassislik_name):
-                    mutaxassislik_name = "Noma'lum"
-                    errors.append(f"Qator {excel_row}: Mutaxassislik bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
-                mutaxassislik, _ = Mutaxassislik.objects.get_or_create(
-                    name=mutaxassislik_name
-                )
-                
-                # Davlatni yaratish yoki olish
-                country, _ = Country.objects.get_or_create(
-                    name="O'zbekiston"
-                )
-                
-                # Doimiy viloyatni yaratish yoki olish
-                const_region_name = row[actual_columns["Doimiy yashash manzili Viloyati"]] if actual_columns["Doimiy yashash manzili Viloyati"] else None
-                if pd.isna(const_region_name):
-                    const_region_name = "Samarqand"
-                    print(f"Qator {excel_row}: Doimiy viloyat bo'sh yoki topilmadi. Standart qiymat (Samarqand) ishlatildi.")
-                const_region, _ = Region.objects.get_or_create(
-                    name=const_region_name
-                )
-                
-                # Doimiy tumanni yaratish yoki olish
-                const_district_name = row[actual_columns["Doimiy yashash manzili Tuman"]] if actual_columns["Doimiy yashash manzili Tuman"] else None
-                if pd.isna(const_district_name):
-                    const_district_name = "Payariq"
-                    print(f"Qator {excel_row}: Doimiy tuman bo'sh yoki topilmadi. Standart qiymat (Payariq) ishlatildi.")
-                const_district, _ = District.objects.get_or_create(
-                    name=const_district_name,
-                    region=const_region
-                )
-                
-                # Vaqtincha viloyatni yaratish yoki olish
-                temp_region_name = row[actual_columns["Vaqtincha yashash manzili Viloyat"]] if actual_columns["Vaqtincha yashash manzili Viloyat"] else None
-                if pd.isna(temp_region_name):
-                    temp_region_name = "Samarqand"
-                    print(f"Qator {excel_row}: Vaqtincha viloyat bo'sh yoki topilmadi. Standart qiymat (Samarqand) ishlatildi.")
-                temp_region, _ = Region.objects.get_or_create(
-                    name=temp_region_name
-                )
-                
-                # Vaqtincha tumanni yaratish yoki olish
-                temp_district_name = row[actual_columns["Vaqtincha yashash manzili Tuman"]] if actual_columns["Vaqtincha yashash manzili Tuman"] else None
-                if pd.isna(temp_district_name):
-                    temp_district_name = "Payariq"
-                    print(f"Qator {excel_row}: Vaqtincha tuman bo'sh yoki topilmadi. Standart qiymat (Payariq) ishlatildi.")
-                temp_district, _ = District.objects.get_or_create(
-                    name=temp_district_name,
-                    region=temp_region
-                )
-                
-                # Joriy manzilni tekshirish
-                temporary_address = row[actual_columns["Vaqtincha yashash manzili Joriy manzili"]] if actual_columns["Vaqtincha yashash manzili Joriy manzili"] else None
-                if pd.isna(temporary_address):
-                    temporary_address = "Samarqand, Payariq tumani"
-                    print(f"Qator {excel_row}: Joriy manzil bo'sh yoki topilmadi. Standart qiymat (Samarqand, Payariq tumani) ishlatildi.")
-                
-                # Guruhni yaratish yoki olish
-                group_name = row[actual_columns["Guruh"]] if actual_columns["Guruh"] else None
-                if pd.isna(group_name):
-                    group_name = "Noma'lum"
-                    print(f"Qator {excel_row}: Guruh bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
-                group, created = Group.objects.get_or_create(
-                    name=group_name,
-                    faculty=faculty,
-                    defaults={'course': course, 'tutor': user}
-                )
-                if not created and group.tutor != user:
-                    group.tutor = user
-                    group.save()
-                    print(f"Qator {excel_row}: Guruh {group_name} uchun tuto'r {user.username} ga yangilandi.")
-                
-                # TTJ yoki Room ni yaratish yoki olish
-                yashash_turi = row[actual_columns["Yashash turi"]] if actual_columns["Yashash turi"] else None
-                if pd.isna(yashash_turi):
-                    yashash_turi = "O'z uyida"
-                    print(f"Qator {excel_row}: Yashash turi bo'sh. Standart qiymat (O'z uyida) ishlatildi.")
-                ttj = None
-                room = None
-                if yashash_turi == "Talabalar turar joyida":
-                    ttj, _ = TTJ.objects.get_or_create(
-                        name="Qarshi TTJ",
-                        address=temporary_address,
-                        region=temp_region,
-                        district=temp_district,
-                        defaults={
-                            'capacity': 100,
-                            'has_internet': True,
-                            'has_heating': True,
-                            'condition': 'good',
-                            'manager_name': 'Noma\'lum',
-                            'manager_phone': 'Noma\'lum',
-                            'notes': ''
-                        }
-                    )
-                elif yashash_turi == "Ijaradagi uyda":
-                    room, _ = Room.objects.get_or_create(
-                        address=temporary_address,
-                        defaults={
-                            'room_number': 'Noma\'lum',
-                            'room_type': 'shared',
-                            'area': 50.0,
-                            'rent_price': 0,
-                            'has_kitchen': False,
-                            'has_bathroom': False,
-                            'has_internet': False,
-                            'has_heating': False,
-                            'condition': 'good',
-                            'landlord_name': 'Noma\'lum',
-                            'landlord_phone': 'Noma\'lum',
-                            'notes': ''
-                        }
-                    )
-                
-                # Tug'ilgan sanani parse qilish
-                birth_date = None
-                if actual_columns["Tug\'ilgan sana"]:
-                    birth_date_str = str(row[actual_columns["Tug\'ilgan sana"]]).strip()
-                    print(f"Qator {excel_row}: Tug'ilgan sana o'qildi: {birth_date_str}")
-                    try:
-                        # Sana formatlarini sinab ko'rish
-                        for fmt in ['%Y-%m-%d', '%d.%m.%Y', '%m/%d/%Y', '%Y/%m/%d']:
-                            try:
-                                birth_date = pd.to_datetime(birth_date_str, format=fmt, errors='coerce')
-                                if not pd.isna(birth_date):
-                                    break
-                            except ValueError:
-                                continue
-                        if pd.isna(birth_date):
-                            raise ValueError(f"Noto'g'ri sana formati: {birth_date_str}")
-                    except (ValueError, TypeError):
-                        errors.append(f"Qator {excel_row}: Tug'ilgan sana noto'g'ri formatda ({birth_date_str}). Standart qiymat (2000-01-01) ishlatildi.")
-                        birth_date = date(2000, 1, 1)
-                else:
-                    errors.append(f"Qator {excel_row}: Tug'ilgan sana ustuni topilmadi. Standart qiymat (2000-01-01) ishlatildi.")
-                    birth_date = date(2000, 1, 1)
-                
-                # F.I.O ni ajratish
-                fio = row[actual_columns["F.I.O"]] if actual_columns["F.I.O"] else None
-                if pd.isna(fio):
-                    fio = "Noma'lum Noma'lum"
-                    errors.append(f"Qator {excel_row}: F.I.O bo'sh. Standart qiymat (Noma'lum Noma'lum) ishlatildi.")
-                fio = str(fio).strip().split()
-                if len(fio) < 2:
-                    errors.append(f"Qator {excel_row}: F.I.O noto'g'ri formatda (kamida ism va familiya kerak). Standart qiymat ishlatildi.")
-                    last_name = fio[0] if fio else "Noma'lum"
-                    first_name = fio[1] if len(fio) > 1 else "Noma'lum"
-                    middle_name = ""
-                else:
-                    last_name = fio[0]
-                    first_name = fio[1]
-                    middle_name = fio[2] if len(fio) > 2 else ""
-                
-                # JSHSHIR ni tekshirish
-                jshshir = row[actual_columns["JSHSHIR"]] if actual_columns["JSHSHIR"] else None
-                if pd.isna(jshshir):
-                    jshshir = f"TEMP{uuid.uuid4().hex[:14]}"  # Vaqtinchalik JSHSHIR
-                    errors.append(f"Qator {excel_row}: JSHSHIR bo'sh. Vaqtinchalik JSHSHIR ({jshshir}) ishlatildi.")
-                else:
-                    # JSHSHIR ni tozalash va tekshirish
-                    jshshir = str(jshshir).strip().replace('.0', '')  # Float ni olib tashlash
-                    print(f"Qator {excel_row}: JSHSHIR o'qildi: {jshshir}, uzunlik: {len(jshshir)}")
-                    if not jshshir.isdigit() or len(jshshir) != 14:
-                        errors.append(f"Qator {excel_row}: JSHSHIR noto'g'ri formatda ({jshshir}, uzunlik: {len(jshshir)}). Vaqtinchalik JSHSHIR ishlatildi.")
-                        jshshir = f"TEMP{uuid.uuid4().hex[:14]}"  # Vaqtinchalik JSHSHIR
-                
-                # Pasportni tekshirish
-                passport = row[actual_columns["Pasport"]] if actual_columns["Pasport"] else None
-                if pd.isna(passport):
-                    passport = "Noma'lum"
-                    errors.append(f"Qator {excel_row}: Pasport bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
-                
-                # Telefon raqamini tekshirish
-                phone_number = row[actual_columns["Telefon raqami"]] if actual_columns["Telefon raqami"] else None
-                if pd.isna(phone_number):
-                    phone_number = "Noma'lum"
-                    errors.append(f"Qator {excel_row}: Telefon raqami bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
-                
-                # Jinsni tekshirish
-                gender = row[actual_columns["Jinsi"]] if actual_columns["Jinsi"] else None
-                if pd.isna(gender) or gender not in ["Erkak", "Ayol"]:
-                    gender = "Erkak"
-                    errors.append(f"Qator {excel_row}: Jins noto'g'ri yoki bo'sh. Standart qiymat (Erkak) ishlatildi.")
-                
-                # Talaba obyektini yaratish
-                student, created = Student.objects.get_or_create(
-                    jshshir=jshshir,
-                    defaults={
-                        'first_name': first_name,
-                        'last_name': last_name,
-                        'middle_name': middle_name,
-                        'gender': 'male' if gender == "Erkak" else 'female',
-                        'birth_date': birth_date,
-                        'group': group,
-                        'is_renting': yashash_turi == "Ijaradagi uyda",
-                        'address': temporary_address,
-                        'phone_number': phone_number,
-                        'email': '',
-                        'is_orphan': row.get("Chin yetim", False) == True,
-                        'has_disability': row.get("Nogironligi bor", False) == True,
-                        'lives_in_dormitory': yashash_turi == "Talabalar turar joyida",
-                        'student_id': int(student_id) if student_id else Student.objects.count() + 1,
-                        'fuqaro': 'uz',
-                        'passport': passport,
-                        'otm': row[actual_columns["OTM"]] if actual_columns["OTM"] and not pd.isna(row[actual_columns["OTM"]]) else "Noma'lum",
-                        'talim_turi': 'bakalavr',
-                        'tulov_turi': 'grant' if actual_columns["To'lov turi"] and row[actual_columns["To'lov turi"]] == "Davlat granti" else 'contract',
-                        'talim_shakli': row[actual_columns["Ta'lim shakli"]].lower() if actual_columns["Ta'lim shakli"] and not pd.isna(row[actual_columns["Ta'lim shakli"]]) else 'kunduzgi',
-                        'shifr': '',
-                        'mutaxassislik': mutaxassislik,
-                        'country': country,
-                        'const_region': const_region,
-                        'const_district': const_district,
-                        'temporary_region': temp_region,
-                        'temporary_district': temp_district,
-                        'temporary_address': temporary_address,
-                        'appartment_type': 'ttj' if yashash_turi == "Talabalar turar joyida" else 'rent' if yashash_turi == "Ijaradagi uyda" else 'home',
-                        'family_type': 'turmush_qurmagan',
-                        'parent_status': row.get("Boquvchisini yuqotgan", None),
-                        'is_in_social_protection': row.get("Ijtimoiy himoya reestiriga kiritilgan", False) == True,
-                        'is_in_temir_daftar': row.get("Temir daftarga kiritilgan oila farzandi", False) == True,
-                        'is_in_women_daftar': row.get("Ayollar daftariga kirgizilgan", False) == True,
-                        'is_in_youth_daftar': row.get("Yoshlar daftariga kiritilgan", False) == True,
-                        'is_in_orphanage': row.get("Mehribonlik uyi tarbiyalanuvchisi", False) == True,
-                        'parents_divorced': row.get("Ota-onasi ajrashgan", False) == True,
-                        'nation': 'uzbek',
-                        'ttj': ttj,
-                        'room': room,
-                    }
-                )
-                
-                if created:
-                    successful += 1
-                    print(f"Talaba {student.first_name} {student.last_name} muvaffaqiyatli qo'shildi.")
-                else:
-                    print(f"Talaba {student.first_name} {student.last_name} allaqachon mavjud.")
+                    excel_row = index + 3
+                    student_id = row.get(actual_columns.get("Talaba ID")) if actual_columns.get("Talaba ID") else None
+                    if pd.isna(student_id):
+                        student_id = Student.objects.count() + 1
+                        logger.info(f"Sahifa {sheet_name}, Qator {excel_row}: Talaba ID bo'sh. Avtomatik ID ({student_id}) ishlatildi.")
                     
-            except Exception as e:
-                errors.append(f"Qator {excel_row}: {str(e)}")
+                    course_str = row.get(actual_columns.get("O'quv kursi")) if actual_columns.get("O'quv kursi") else None
+                    try:
+                        course = int(float(course_str))
+                        if course < 1 or course > 4:
+                            raise ValueError
+                    except (ValueError, TypeError):
+                        course = 1
+                        errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: O'quv kursi noto'g'ri yoki bo'sh. Standart qiymat (1) ishlatildi.")
+                    
+                    faculty_name = row.get(actual_columns.get("Fakultet")) if actual_columns.get("Fakultet") else "Noma'lum"
+                    if pd.isna(faculty_name):
+                        faculty_name = "Noma'lum"
+                        errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: Fakultet bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
+                    faculty, _ = Faculty.objects.get_or_create(
+                        name=faculty_name,
+                        defaults={'description': f'{faculty_name} fakulteti'}
+                    )
+                    
+                    mutaxassislik_name = row.get(actual_columns.get("Mutaxassisligi")) if actual_columns.get("Mutaxassisligi") else "Noma'lum"
+                    if pd.isna(mutaxassislik_name):
+                        mutaxassislik_name = "Noma'lum"
+                        errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: Mutaxassislik bo'sh. Standart qiymat (Noma'lum) ishlatildi.")
+                    mutaxassislik, _ = Mutaxassislik.objects.get_or_create(name=mutaxassislik_name)
+                    
+                    fuqarolik = row.get(actual_columns.get("Fuqarolik")) if actual_columns.get("Fuqarolik") else "O‘zbekiston fuqarosi"
+                    country_name = "O'zbekiston" if "zbekiston" in str(fuqarolik).lower() else "Noma'lum"
+                    country, _ = Country.objects.get_or_create(name=country_name)
+                    
+                    const_region_name = row.get(actual_columns.get("Doimiy yashash manzili Viloyati")) if actual_columns.get("Doimiy yashash manzili Viloyati") else "Qashqadaryo viloyati"
+                    const_region, _ = Region.objects.get_or_create(name=const_region_name)
+                    const_district_name = row.get(actual_columns.get("Doimiy yashash manzili Tuman")) if actual_columns.get("Doimiy yashash manzili Tuman") else "Qarshi tumani"
+                    const_district, _ = District.objects.get_or_create(name=const_district_name, region=const_region)
+                    
+                    temp_region_name = row.get(actual_columns.get("Vaqtincha yashash manzili Viloyat")) if actual_columns.get("Vaqtincha yashash manzili Viloyat") else "Qashqadaryo viloyati"
+                    temp_region, _ = Region.objects.get_or_create(name=temp_region_name)
+                    temp_district_name = row.get(actual_columns.get("Vaqtincha yashash manzili Tuman")) if actual_columns.get("Vaqtincha yashash manzili Tuman") else "Qarshi tumani"
+                    temp_district, _ = District.objects.get_or_create(name=temp_district_name, region=temp_region)
+                    
+                    temporary_address = row.get(actual_columns.get("Vaqtincha yashash manzili Joriy manzili")) if actual_columns.get("Vaqtincha yashash manzili Joriy manzili") else "Noma'lum"
+                    if pd.isna(temporary_address):
+                        temporary_address = "Noma'lum"
+                    
+                    group_name = row.get(actual_columns.get("Guruh")) if actual_columns.get("Guruh") else "Noma'lum"
+                    if pd.isna(group_name):
+                        group_name = "Noma'lum"
+                    group, created = Group.objects.get_or_create(
+                        name=group_name,
+                        faculty=faculty,
+                        defaults={'course': course, 'tutor': user}
+                    )
+                    if not created and group.tutor != user:
+                        group.tutor = user
+                        group.save()
+                    
+                    yashash_turi = row.get(actual_columns.get("Yashash turi")) if actual_columns.get("Yashash turi") else "O'z uyida"
+                    if pd.isna(yashash_turi):
+                        yashash_turi = "O'z uyida"
+                    ttj = None
+                    room = None
+                    appartment_type = 'home'
+                    if "talabalar turar" in yashash_turi.lower():
+                        appartment_type = 'ttj'
+                        ttj, _ = TTJ.objects.get_or_create(
+                            name="Qarshi TTJ",
+                            address=temporary_address,
+                            region=temp_region,
+                            district=temp_district,
+                            defaults={
+                                'capacity': 100,
+                                'has_internet': True,
+                                'has_heating': True,
+                                'condition': 'good',
+                                'manager_name': 'Noma\'lum',
+                                'manager_phone': 'Noma\'lum',
+                                'notes': ''
+                            }
+                        )
+                    elif "ijara" in yashash_turi.lower():
+                        appartment_type = 'rent'
+                        room, _ = Room.objects.get_or_create(
+                            address=temporary_address,
+                            defaults={
+                                'room_number': 'Noma\'lum',
+                                'room_type': 'shared',
+                                'area': 50.0,
+                                'rent_price': 0,
+                                'has_kitchen': False,
+                                'has_bathroom': False,
+                                'has_internet': False,
+                                'has_heating': False,
+                                'condition': 'good',
+                                'landlord_name': 'Noma\'lum',
+                                'landlord_phone': 'Noma\'lum',
+                                'notes': ''
+                            }
+                        )
+                    
+                    birth_date_str = row.get(actual_columns.get("Tug'ilgan sana")) if actual_columns.get("Tug\'ilgan sana") else None
+                    birth_date = date(2000, 1, 1)
+                    if birth_date_str:
+                        try:
+                            for fmt in ['%Y-%m-%d', '%d.%m.%Y', '%m/%d/%Y', '%Y/%m/%d', '%d/%m/%Y']:
+                                try:
+                                    birth_date = datetime.strptime(str(birth_date_str), fmt).date()
+                                    break
+                                except ValueError:
+                                    continue
+                            else:
+                                raise ValueError
+                        except ValueError:
+                            errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: Tug'ilgan sana noto'g'ri formatda ({birth_date_str}). Standart (2000-01-01).")
+                    
+                    fio = row.get(actual_columns.get("F.I.O")) if actual_columns.get("F.I.O") else "Noma'lum Noma'lum"
+                    fio_parts = str(fio).strip().split()
+                    last_name = fio_parts[0] if fio_parts else "Noma'lum"
+                    first_name = fio_parts[1] if len(fio_parts) > 1 else "Noma'lum"
+                    middle_name = " ".join(fio_parts[2:]) if len(fio_parts) > 2 else ""
+                    
+                    jshshir = row.get(actual_columns.get("JSHSHIR")) if actual_columns.get("JSHSHIR") else None
+                    if pd.isna(jshshir) or not str(jshshir).isdigit() or len(str(jshshir)) != 14:
+                        jshshir = f"TEMP{uuid.uuid4().hex[:14]}"
+                        errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: JSHSHIR noto'g'ri yoki bo'sh. Vaqtinchalik ({jshshir}).")
+                    jshshir = str(jshshir).replace('.0', '')
+                    
+                    passport = row.get(actual_columns.get("Pasport")) if actual_columns.get("Pasport") else "Noma'lum"
+                    phone_number = row.get(actual_columns.get("Telefon raqami")) if actual_columns.get("Telefon raqami") else "Noma'lum"
+                    gender_str = row.get(actual_columns.get("Jinsi")) if actual_columns.get("Jinsi") else "Erkak"
+                    gender = 'male' if "erkak" in gender_str.lower() else 'female'
+                    
+                    family_status = row.get(actual_columns.get("Oilaviy holati")) if actual_columns.get("Oilaviy holati") else "Oila qurmagan"
+                    family_type = 'married' if "qurgan" in family_status.lower() else 'unmarried' if "qurmagan" in family_status.lower() else 'unmarried'
+                    
+                    nation = row.get(actual_columns.get("Millat")) if actual_columns.get("Millat") else "O'zbek"
+                    nation = nation.lower()
+                    
+                    tulov_turi = row.get(actual_columns.get("To'lov turi")) if actual_columns.get("To'lov turi") else "To‘lov-shartnoma"
+                    tulov_turi = 'grant' if "granti" in str(tulov_turi).lower() else 'contract'
+                    
+                    talim_shakli = row.get(actual_columns.get("Ta'lim shakli")) if actual_columns.get("Ta'lim shakli") else "Kunduzgi"
+                    talim_shakli = talim_shakli.lower()
+                    
+                    is_orphan = row.get("Chin yetim", 'Yo\'q') == 'Ha'
+                    has_disability = row.get("Nogironligi bor", 'Yo\'q') != 'Yo\'q'
+                    parent_status = row.get("Boquvchisini yuqotgan", 'Yo\'q')
+                    is_in_social_protection = row.get("Ijtimoiy himoya reestiriga kiritilgan", 'Yo\'q') == 'Ha'
+                    is_in_temir_daftar = row.get("Temir daftarga kiritilgan oila farzandi", 'Yo\'q') == 'Ha'
+                    is_in_women_daftar = row.get("Ayollar daftariga kirgizilgan", 'Yo\'q') == 'Ha'
+                    is_in_youth_daftar = row.get("Yoshlar daftariga kiritilgan", 'Yo\'q') == 'Ha'
+                    is_in_orphanage = row.get("Mehribonlik uyi tarbiyalanuvchisi", 'Yo\'q') == 'Ha'
+                    parents_divorced = row.get("Ota-onasi ajrashgan", 'Yo\'q') == 'Ha'
+                    
+                    student, created = Student.objects.get_or_create(
+                        jshshir=jshshir,
+                        defaults={
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'middle_name': middle_name,
+                            'gender': gender,
+                            'birth_date': birth_date,
+                            'group': group,
+                            'is_renting': appartment_type == 'rent',
+                            'address': temporary_address,
+                            'phone_number': phone_number,
+                            'email': '',
+                            'is_orphan': is_orphan,
+                            'has_disability': has_disability,
+                            'lives_in_dormitory': appartment_type == 'ttj',
+                            'student_id': int(student_id) if student_id else Student.objects.count() + 1,
+                            'fuqaro': 'uz' if country_name == "O'zbekiston" else '',
+                            'passport': passport,
+                            'otm': row.get(actual_columns.get("OTM")) if actual_columns.get("OTM") else "Qarshi davlat texnika universiteti",
+                            'talim_turi': 'bakalavr',
+                            'tulov_turi': tulov_turi,
+                            'talim_shakli': talim_shakli,
+                            'shifr': '',
+                            'mutaxassislik': mutaxassislik,
+                            'country': country,
+                            'const_region': const_region,
+                            'const_district': const_district,
+                            'temporary_region': temp_region,
+                            'temporary_district': temp_district,
+                            'temporary_address': temporary_address,
+                            'appartment_type': appartment_type,
+                            'family_type': family_type,
+                            'parent_status': parent_status,
+                            'is_in_social_protection': is_in_social_protection,
+                            'is_in_temir_daftar': is_in_temir_daftar,
+                            'is_in_women_daftar': is_in_women_daftar,
+                            'is_in_youth_daftar': is_in_youth_daftar,
+                            'is_in_orphanage': is_in_orphanage,
+                            'parents_divorced': parents_divorced,
+                            'nation': nation,
+                            'ttj': ttj,
+                            'room': room,
+                        }
+                    )
+                    
+                    if created:
+                        successful += 1
+                        logger.info(f"Sahifa {sheet_name}, Qator {excel_row}: Talaba {student.first_name} {student.last_name} qo'shildi.")
+                    else:
+                        logger.info(f"Sahifa {sheet_name}, Qator {excel_row}: Talaba {student.first_name} {student.last_name} mavjud.")
+                
+                except Exception as e:
+                    errors.append(f"Sahifa {sheet_name}, Qator {excel_row}: {str(e)}")
         
         return successful, errors
     
     except Exception as e:
-        return 0, [f"Faylni o'qishda xato: {str(e)}. Iltimos, fayl .xls yoki .xlsx formatida ekanligiga va barcha ustunlar to'g'ri to'ldirilganligiga ishonch hosil qiling."]
+        return 0, [f"Faylni o'qishda xato: {str(e)}. Fayl formatini tekshiring."]
 
 def upload_excel(request):
     if not request.user.is_authenticated:
-        return render(request, 'students/upload_excel.html', {'message': 'Faylni yuklash uchun tizimga kiring.', 'errors': []})
+        return render(request, 'students/upload_excel.html', {'message': 'Tizimga kiring.', 'errors': []})
     
     if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
@@ -850,20 +814,47 @@ def upload_excel(request):
         file_path = fs.path(filename)
         
         try:
+            # Ensure pandas closes the file after reading
             successful, errors = import_students_from_excel(file_path, request.user)
-            os.remove(file_path)  # Faylni o'chirish
+            
+            # Attempt to delete the file with retries
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    os.remove(file_path)
+                    logger.info(f"Fayl muvaffaqiyatli o'chirildi: {file_path}")
+                    break
+                except PermissionError as e:
+                    logger.warning(f"Faylni o'chirishda xato (Pog'on {attempt + 1}/{max_retries}): {str(e)}")
+                    time.sleep(1)  # Wait 1 second before retrying
+                except Exception as e:
+                    logger.error(f"Faylni o'chirishda kutilmagan xato: {str(e)}")
+                    errors.append(f"Faylni o'chirishda xato: {str(e)}")
+                    break
+            
             context = {
                 'successful': successful,
                 'errors': errors,
-                'message': f"Muvaffaqiyatli import qilinganlar: {successful}. Xatolar soni: {len(errors)}"
+                'message': f"Muvaffaqiyatli: {successful}. Xatolar: {len(errors)}"
             }
             return render(request, 'students/upload_excel.html', context)
+        
         except Exception as e:
-            os.remove(file_path)  # Xato yuz bersa ham faylni o'chirish
+            # Attempt to delete the file even if processing fails
+            try:
+                os.remove(file_path)
+                logger.info(f"Fayl muvaffaqiyatli o'chirildi (xato holatida): {file_path}")
+            except PermissionError:
+                logger.warning(f"Faylni o'chirishda xato (xato holatida): {file_path}")
+                errors.append(f"Faylni o'chirishda xato: Fayl boshqa jarayon tomonidan ishlatilmoqda.")
+            except Exception as e:
+                logger.error(f"Faylni o'chirishda kutilmagan xato: {str(e)}")
+                errors.append(f"Faylni o'chirishda xato: {str(e)}")
+            
             context = {
                 'successful': 0,
-                'errors': [f"Faylni o'qishda xato: {str(e)}. Iltimos, fayl .xls yoki .xlsx formatida ekanligiga va barcha ustunlar to'g'ri to'ldirilganligiga ishonch hosil qiling."],
-                'message': 'Fayl yuklashda xato yuz berdi.'
+                'errors': [f"Xato: {str(e)}"] + errors,
+                'message': 'Xato yuz berdi.'
             }
             return render(request, 'students/upload_excel.html', context)
     

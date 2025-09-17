@@ -24,70 +24,7 @@
     </div>
     
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stats-card">
-                <div class="icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="number">{{ page_obj.paginator.count }}</div>
-                <div class="label">Jami guruhlar</div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stats-card success">
-                <div class="icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="number">
-                    {% with total=0 %}
-                        {% for group in groups %}
-                            {% with total=total|add:group.students.count %}{% endwith %}
-                        {% endfor %}
-                        {{ total }}
-                    {% endwith %}
-                </div>
-                <div class="label">Jami talabalar</div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stats-card warning">
-                <div class="icon">
-                    <i class="fas fa-home"></i>
-                </div>
-                <div class="number">
-                    {% with renting=0 %}
-                        {% for group in groups %}
-                            {% with renting=renting|add:group.renting_students_count %}{% endwith %}
-                        {% endfor %}
-                        {{ renting }}
-                    {% endwith %}
-                </div>
-                <div class="label">Ijara xonadonida</div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stats-card info">
-                <div class="icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="number">
-                    {% with dormitory=0 %}
-                        {% for group in groups %}
-                            {% for student in group.students.all %}
-                                {% if student.lives_in_dormitory %}
-                                    {% with dormitory=dormitory|add:1 %}{% endwith %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endfor %}
-                        {{ dormitory }}
-                    {% endwith %}
-                </div>
-                <div class="label">TTJ da yashovchi</div>
-            </div>
-        </div>
-    </div>
-    
+
     <!-- Groups Grid -->
     <div class="row">
         {% for group in page_obj %}
@@ -140,6 +77,14 @@
                             <div class="col-3">
                                 <div class="fw-bold text-warning fs-5">{{ group.renting_students_count }}</div>
                                 <small class="text-muted">Ijara</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="fw-bold text-secondary fs-5">{{ group.dormitory_students_count }}</div>
+                                <small class="text-muted">TTJ</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="fw-bold text-danger fs-5">{{ group.disabled_students_count }}</div>
+                                <small class="text-muted">Nogiron</small>
                             </div>
                         </div>
                         <div class="d-grid">

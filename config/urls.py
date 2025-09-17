@@ -13,6 +13,7 @@ urlpatterns = [
     path('plans/', include('plans.urls')),
     path('dashboard/',  include('dashboard.urls')),
     path('events/', include('events.urls')),
+    path('attendance/', include('attendance.urls')),
 ]               
 
 if settings.DEBUG:

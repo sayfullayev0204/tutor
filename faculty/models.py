@@ -75,3 +75,11 @@ class Group(models.Model):
     @property
     def renting_students_count(self):
         return self.students.filter(is_renting=True).count()
+
+    @property
+    def dormitory_students_count(self):
+        return self.students.filter(lives_in_dormitory=True).count()
+
+    @property
+    def disabled_students_count(self):
+        return self.students.filter(has_disability=True).count()

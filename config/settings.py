@@ -60,7 +60,8 @@ INSTALLED_APPS = [
     'faculty',
     'housing',
     'plans',
-    'events'
+    'events',
+    'attendance',
 ]
 
 MIDDLEWARE = [

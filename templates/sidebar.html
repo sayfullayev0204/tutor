@@ -167,6 +167,14 @@
                     </a>
                 </li>
                 
+                
+                <li class="nav-item mt-auto">
+                    <a href="{% url 'attendance_view' %}" class="nav-link flex items-center hover:bg-gray-100 {% if request.resolver_match.url_name == 'attendance_view' %}sidebar-active{% endif %}">
+                        <i class="fas fa-clipboard-check mr-3"></i>
+                        Davomad
+                    </a>
+                </li>
+
                 <li class="nav-item mt-auto">
                     <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
                         <i class="fas fa-user-cog"></i>
