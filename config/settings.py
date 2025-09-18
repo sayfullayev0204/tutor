@@ -25,13 +25,14 @@ SECRET_KEY = '32)+mwbb*7)8rp*^f)lp5ef+k-p!rt^6u8n4q=@9s13yju(t-e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['phoenix-rapid-factually.ngrok-free.app','127.0.0.1','192.168.71.16']
+ALLOWED_HOSTS = ['phoenix-rapid-factually.ngrok-free.app','127.0.0.1','192.168.71.16','sayfullayevdev.uz']
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8080",
     "http://127.0.0.1:8000",
-    'https://phoenix-rapid-factually.ngrok-free.app'
+    'https://phoenix-rapid-factually.ngrok-free.app',
+    'http//:sayfullayevdev.uz'
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
