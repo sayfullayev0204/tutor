@@ -1,78 +1,47 @@
 {% extends 'base.html' %}
-
-{% block title %}Tutor Davomad - {{ block.super }}{% endblock %}
-
 {% block content %}
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .status-taken {
-            background-color: #10b981;
-            color: white;
-        }
-        .status-pending {
-            background-color: #f59e0b;
-            color: white;
-        }
-        .locked-attendance {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-    </style>
-<div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Davomad</h1>
-    <p class="text-gray-600">Bugungi sana: {{ current_date|date:"d.m.Y" }}</p>
-</div>
-
-<div class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-xl font-semibold mb-4">Sizning guruhlaringiz</h2>
+<div class="container">
+    <h2>Davomad olish</h2>
+    <p> {{ user.get_full_name }} | Date: {{ current_date }}</p>
     
-    {% if groups_with_status %}
-        <div class="grid gap-4">
-            {% for item in groups_with_status %}
-                <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-lg font-medium">{{ item.group.name }}</h3>
-                            <p class="text-gray-600">{{ item.group.faculty.name }} - {{ item.group.course }}-kurs</p>
-                            <p class="text-sm text-gray-500">Talabalar soni: {{ item.group.student_set.count }}</p>
-                        </div>
-                        
-                        <div class="flex items-center space-x-3">
-                            {% if item.status == 'taken' %}
-                                <span class="px-3 py-1 rounded-full text-sm status-taken">
-                                    <i class="fas fa-check mr-1"></i>
-                                    Qabul qilingan
-                                </span>
-                                <span class="text-sm text-gray-500">
-                                    {{ item.attendance.created_at|date:"H:i" }}da
-                                </span>
-                                <a href="{% url 'attendance_details' item.group.id %}" 
-                                   class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
-                                    <i class="fas fa-eye mr-1"></i>
-                                    Ma'lumotlarni ko'rish
-                                </a>
-                            {% else %}
-                                <span class="px-3 py-1 rounded-full text-sm status-pending">
-                                    <i class="fas fa-clock mr-1"></i>
-                                    Kutilmoqda
-                                </span>
-                                <a href="{% url 'take_attendance' item.group.id %}" 
-                                   class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-                                    <i class="fas fa-clipboard-check mr-1"></i>
-                                    Davomad qabul qilish
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                {{ message }}
             {% endfor %}
         </div>
-    {% else %}
-        <div class="text-center py-8">
-            <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
-            <p class="text-gray-600">Sizga biriktirilgan guruhlar topilmadi.</p>
-        </div>
     {% endif %}
+    
+    <h3>Guruhlar</h3>
+    <div class="row">
+        {% for item in groups_with_status %}
+            <div class="col-md-4 mb-3">  <!-- 3 per row using col-md-4 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4>{{ item.group.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        {% for period in item.period_status %}
+                            <p>
+                                {{ period.period_name }}:
+                                {% if period.status == 'taken' %}
+                                    <span class="badge badge-success">Davomad olingan</span>
+                                    <a href="{% url 'attendance_details_period' group_id=item.group.id attendance_date=current_date period=period.period %}" class="btn btn-sm btn-info">Davomad hisoboti</a>
+                                {% else %}
+                                    <span class="badge badge-warning">Kutilmoqda</span>
+                                    <a href="{% url 'take_attendance_period' group_id=item.group.id period=period.period %}" class="btn btn-sm btn-primary">Davomad olish</a>
+                                {% endif %}
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% if forloop.counter|divisibleby:3 %}
+                </div><div class="row">  <!-- Start a new row every 3 groups -->
+            {% endif %}
+        {% empty %}
+            <p>No groups assigned to you.</p>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

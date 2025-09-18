@@ -5,24 +5,17 @@
 
 {% block extra_css %}
 <style>
-    /* Events CSS */
+/* Your existing CSS, trimmed for brevity */
 .event-card {
   transition: all 0.3s ease;
   border: 1px solid #e3e6f0;
   border-radius: 8px;
 }
-
 .event-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: #28a745;
 }
-
-.event-info {
-  border-left: 3px solid #e3e6f0;
-  padding-left: 0.75rem;
-}
-
 .event-description {
   background-color: #f8f9fc;
   padding: 0.75rem;
@@ -30,29 +23,18 @@
   border: 1px solid #e3e6f0;
   border-left: 4px solid #007bff;
 }
-
-.event-photos {
-  background-color: #e8f5e8;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border-left: 3px solid #28a745;
-}
-
 .dean-comment {
   background-color: #fff3cd;
   padding: 0.75rem;
   border-radius: 6px;
   border-left: 4px solid #ffc107;
 }
-
-/* Photos Grid */
 .photos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   padding: 15px;
 }
-
 .photo-item {
   position: relative;
   border-radius: 8px;
@@ -60,11 +42,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
-
 .photo-item:hover {
   transform: scale(1.05);
 }
-
 .photo-thumbnail {
   width: 100%;
   height: 120px;
@@ -72,11 +52,9 @@
   cursor: pointer;
   transition: opacity 0.3s ease;
 }
-
 .photo-thumbnail:hover {
   opacity: 0.9;
 }
-
 .photo-caption {
   position: absolute;
   bottom: 0;
@@ -87,330 +65,10 @@
   padding: 10px 8px 5px;
   font-size: 0.75rem;
 }
-
-/* Event Form Styles */
-.event-form-container {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  border-radius: 20px;
-  padding: 0;
-  margin: 20px 0;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.form-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 30px;
-  text-align: center;
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  opacity: 0.9;
-}
-
-.form-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.form-subtitle {
-  font-size: 1rem;
-  opacity: 0.8;
-  margin: 0;
-}
-
-.section-container {
-  background: white;
-  margin: 0;
-  padding: 30px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.section-container:last-child {
-  border-bottom: none;
-}
-
-.section-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 25px;
-  text-align: center;
-}
-
-/* Photo Upload */
-.photo-upload-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 25px;
-}
-
-.photo-upload-container {
-  position: relative;
-}
-
-.add-photo-section {
-  text-align: center;
-  margin-top: 20px;
-  padding: 20px;
-  border: 2px dashed #dee2e6;
-  border-radius: 10px;
-  background: #f8f9fa;
-  transition: all 0.3s ease;
-}
-
-.add-photo-section:hover {
-  border-color: #28a745;
-  background: #f0fff4;
-}
-
-.photo-upload-item {
-  position: relative;
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 20px;
-  border: 2px dashed #dee2e6;
-  transition: all 0.3s ease;
-}
-
-.photo-upload-item:hover {
-  border-color: #28a745;
-  background: #f0fff4;
-}
-
-.remove-photo-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  font-size: 0.8rem;
-}
-
-.photo-upload-item:not(:first-child) .remove-photo-btn {
-  display: flex;
-}
-
-.photo-upload-item:hover .remove-photo-btn {
-  display: flex;
-}
-
-.photo-upload-header h6 {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.photo-upload-area {
-  position: relative;
-  margin-bottom: 15px;
-}
-
-.photo-input {
-  display: none;
-}
-
-.photo-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
-  border: 2px dashed #ccc;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.photo-label:hover {
-  border-color: #28a745;
-  background: #f0fff4;
-}
-
-.photo-label i {
-  font-size: 2rem;
-  color: #28a745;
-  margin-bottom: 10px;
-}
-
-.photo-label span {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.photo-label small {
-  color: #666;
-  font-size: 0.8rem;
-}
-
-.photo-preview {
-  display: none;
-  position: relative;
-}
-
-.photo-preview.active {
-  display: block;
-}
-
-.photo-preview img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 2px solid #dee2e6;
-}
-
-.photo-remove {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-comment label {
-  display: block;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.photo-comment textarea {
-  width: 100%;
-  min-height: 80px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 0.9rem;
-  resize: vertical;
-  transition: border-color 0.3s ease;
-}
-
-.photo-comment textarea:focus {
-  outline: none;
-  border-color: #28a745;
-}
-
-/* Form Footer */
-.form-footer {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  padding: 30px;
-  text-align: center;
-}
-
-.submit-btn {
-  background: white;
-  color: #28a745;
-  border: none;
-  padding: 15px 40px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  background: #f8f9fa;
-}
-
-.submit-btn:active {
-  transform: translateY(0);
-}
-
-.submit-btn i {
-  margin-right: 10px;
-}
-
-/* Loading state */
-.submit-btn.loading,
-.btn-loading {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.submit-btn.loading::after,
-.btn-loading::after {
-  content: "";
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid #28a745;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-left: 10px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Form Controls */
-.form-control {
-  border-radius: 8px;
-  border: 2px solid #dee2e6;
-  padding: 12px 15px;
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: #28a745;
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
-}
-
-/* Badge improvements */
 .badge-lg {
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
 }
-
-/* Avatar and icons */
-.event-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #e3f2fd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .avatar-circle {
   width: 35px;
   height: 35px;
@@ -423,49 +81,17 @@
   font-weight: bold;
   font-size: 0.8rem;
 }
-
-/* Responsive */
 @media (max-width: 768px) {
-  .event-form-container {
-    margin: 10px;
-    border-radius: 15px;
-  }
-
-  .form-header {
-    padding: 20px;
-  }
-
-  .form-title {
-    font-size: 1.5rem;
-  }
-
-  .section-container {
-    padding: 20px;
-  }
-
-  .photo-upload-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
   .photos-grid {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
-
   .photo-thumbnail {
     height: 100px;
   }
 }
-
-/* Animation */
 .event-card {
   animation: fadeInUp 0.6s ease-out;
 }
-
-.photo-upload-item.new-photo {
-  animation: slideInUp 0.5s ease-out;
-}
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -476,31 +102,38 @@
     transform: translateY(0);
   }
 }
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.modal .close {
+  padding: 1rem;
+  margin: -1rem -1rem -1rem auto;
+  background: transparent;
+  border: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: 0.5;
+  cursor: pointer;
 }
-
+.modal .close:hover {
+  opacity: 0.75;
+}
+.modal .close:focus {
+  outline: none;
+  opacity: 0.75;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <!-- Tadbir ma'lumotlari -->
+        <!-- Event Details -->
         <div class="col-md-8">
-            <div class="card">
+            <div class="card event-card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-calendar-alt"></i>
-                        {{ event.title }}
+                        <i class="fas fa-calendar-alt"></i> {{ event.title }}
                     </h3>
                     <div class="card-tools">
                         {% if event.status == 'pending' %}
@@ -518,16 +151,13 @@
                         {% endif %}
                     </div>
                 </div>
-                
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <table class="table table-borderless">
                                 <tr>
                                     <td><strong><i class="fas fa-tag"></i> Kategoriya:</strong></td>
-                                    <td>
-                                        <span class="badge badge-info">{{ event.get_category_display }}</span>
-                                    </td>
+                                    <td><span class="badge bg-success text-dark me-2">{{ event.get_category_display }}</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong><i class="fas fa-calendar"></i> Sana:</strong></td>
@@ -539,18 +169,22 @@
                                 </tr>
                                 <tr>
                                     <td><strong><i class="fas fa-users"></i> Ishtirokchilar:</strong></td>
-                                    <td>
-                                        <span class="badge badge-secondary">{{ event.participants_count }} kishi</span>
-                                    </td>
+                                    <td><span class="badge badge-secondary">{{ event.participants_count }} kishi</span></td>
                                 </tr>
                             </table>
                         </div>
-                        
                         <div class="col-md-6">
                             <table class="table table-borderless">
                                 <tr>
                                     <td><strong><i class="fas fa-user"></i> Tashkilotchi:</strong></td>
-                                    <td>{{ event.organizer.get_full_name }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle mr-2">
+                                                {{ event.organizer.first_name.0 }}{{ event.organizer.last_name.0 }}
+                                            </div>
+                                            {{ event.organizer.get_full_name }}
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><strong><i class="fas fa-calendar-plus"></i> Yaratilgan:</strong></td>
@@ -569,7 +203,6 @@
                             </table>
                         </div>
                     </div>
-                    
                     <div class="row mt-3">
                         <div class="col-12">
                             <h5><i class="fas fa-align-left"></i> Tadbir haqida:</h5>
@@ -578,7 +211,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     {% if event.dean_comment %}
                     <div class="row mt-3">
                         <div class="col-12">
@@ -590,7 +222,6 @@
                     </div>
                     {% endif %}
                 </div>
-                
                 <div class="card-footer">
                     {% if user.is_tutor %}
                         <a href="{% url 'event_list' %}" class="btn btn-secondary">
@@ -604,18 +235,15 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Tadbir rasmlari -->
+        <!-- Event Photos -->
         <div class="col-md-4">
-            <div class="card">
+            <div class="card event-card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-images"></i>
-                        Tadbir rasmlari
+                        <i class="fas fa-images"></i> Tadbir rasmlari
                         <span class="badge badge-primary">{{ photos.count }}</span>
                     </h3>
                 </div>
-                
                 <div class="card-body p-0">
                     {% if photos %}
                     <div class="photos-grid">
@@ -623,7 +251,7 @@
                         <div class="photo-item">
                             <img src="{{ photo.photo.url }}" alt="Tadbir rasmi" 
                                  class="photo-thumbnail" 
-                                 onclick="showImageModal('{{ photo.photo.url }}', '{{ photo.caption }}')">
+                                 onclick="showImageModal('{{ photo.photo.url }}', '{{ photo.caption|escapejs }}')">
                             {% if photo.caption %}
                             <div class="photo-caption">
                                 <small>{{ photo.caption|truncatechars:50 }}</small>
@@ -645,13 +273,13 @@
 </div>
 
 <!-- Image Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1">
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="imageModalTitle">Rasm</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body text-center">
@@ -665,153 +293,133 @@
 {% block extra_js %}
 <script>
 function showImageModal(imageUrl, caption) {
-    document.getElementById('modalImage').src = imageUrl;
-    document.getElementById('imageModalTitle').textContent = caption || 'Tadbir rasmi';
-    $('#imageModal').modal('show');
+    console.log('showImageModal called:', imageUrl, caption); // Debug log
+    try {
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('imageModalTitle').textContent = caption || 'Tadbir rasmi';
+        $('#imageModal').modal('show');
+    } catch (error) {
+        console.error('Error in showImageModal:', error);
+    }
 }
+
 // Dean Events JavaScript
-let currentEventId = null
-let currentAction = null
+let currentEventId = null;
+let currentAction = null;
 
 function viewEvent(eventId) {
-  // Load event details via AJAX
-  fetch(`/events/${eventId}/details/`)
-    .then((response) => response.json())
-    .then((data) => {
-      document.getElementById("eventDetails").innerHTML = data.html
-      window.jQuery("#eventModal").modal("show")
-    })
-    .catch((error) => {
-      console.error("Error:", error)
-      showNotification("Xatolik yuz berdi!", "danger")
-    })
+    fetch(`/events/${eventId}/details/`)
+        .then((response) => response.json())
+        .then((data) => {
+            document.getElementById("eventDetails").innerHTML = data.html;
+            window.jQuery("#eventModal").modal("show");
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            showNotification("Xatolik yuz berdi!", "danger");
+        });
 }
 
 function approveEvent(eventId) {
-  currentEventId = eventId
-  currentAction = "approve"
-
-  document.getElementById("approvalModalTitle").textContent = "Tadbirni tasdiqlash"
-  document.getElementById("approvalSubmitBtn").textContent = "Tasdiqlash"
-  document.getElementById("approvalSubmitBtn").className = "btn btn-success"
-
-  window.jQuery("#approvalModal").modal("show")
+    currentEventId = eventId;
+    currentAction = "approve";
+    document.getElementById("approvalModalTitle").textContent = "Tadbirni tasdiqlash";
+    document.getElementById("approvalSubmitBtn").textContent = "Tasdiqlash";
+    document.getElementById("approvalSubmitBtn").className = "btn btn-success";
+    window.jQuery("#approvalModal").modal("show");
 }
 
 function rejectEvent(eventId) {
-  currentEventId = eventId
-  currentAction = "reject"
-
-  document.getElementById("approvalModalTitle").textContent = "Tadbirni rad etish"
-  document.getElementById("approvalSubmitBtn").textContent = "Rad etish"
-  document.getElementById("approvalSubmitBtn").className = "btn btn-danger"
-
-  window.jQuery("#approvalModal").modal("show")
+    currentEventId = eventId;
+    currentAction = "reject";
+    document.getElementById("approvalModalTitle").textContent = "Tadbirni rad etish";
+    document.getElementById("approvalSubmitBtn").textContent = "Rad etish";
+    document.getElementById("approvalSubmitBtn").className = "btn btn-danger";
+    window.jQuery("#approvalModal").modal("show");
 }
 
-// Handle approval form submission
 document.getElementById("approvalForm").addEventListener("submit", (e) => {
-  e.preventDefault()
-
-  const deanComment = document.getElementById("dean_comment").value.trim()
-  const submitBtn = document.getElementById("approvalSubmitBtn")
-
-  // Show loading state
-  submitBtn.classList.add("btn-loading")
-  submitBtn.disabled = true
-
-  // Prepare form data
-  const formData = new FormData()
-  formData.append("action", currentAction)
-  formData.append("dean_comment", deanComment)
-  formData.append("csrfmiddlewaretoken", document.querySelector("[name=csrfmiddlewaretoken]").value)
-
-  // Send request
-  fetch(`/events/${currentEventId}/approve/`, {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        window.jQuery("#approvalModal").modal("hide")
-        showNotification(
-          currentAction === "approve" ? "Tadbir tasdiqlandi!" : "Tadbir rad etildi!",
-          currentAction === "approve" ? "success" : "warning",
-        )
-
-        // Reload page after short delay
-        setTimeout(() => {
-          window.location.reload()
-        }, 1500)
-      } else {
-        showNotification("Xatolik yuz berdi!", "danger")
-      }
+    e.preventDefault();
+    const deanComment = document.getElementById("dean_comment").value.trim();
+    const submitBtn = document.getElementById("approvalSubmitBtn");
+    submitBtn.classList.add("btn-loading");
+    submitBtn.disabled = true;
+    const formData = new FormData();
+    formData.append("action", currentAction);
+    formData.append("dean_comment", deanComment);
+    formData.append("csrfmiddlewaretoken", document.querySelector("[name=csrfmiddlewaretoken]").value);
+    fetch(`/events/${currentEventId}/approve/`, {
+        method: "POST",
+        body: formData,
     })
-    .catch((error) => {
-      console.error("Error:", error)
-      showNotification("Xatolik yuz berdi!", "danger")
-    })
-    .finally(() => {
-      // Remove loading state
-      submitBtn.classList.remove("btn-loading")
-      submitBtn.disabled = false
-    })
-})
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                window.jQuery("#approvalModal").modal("hide");
+                showNotification(
+                    currentAction === "approve" ? "Tadbir tasdiqlandi!" : "Tadbir rad etildi!",
+                    currentAction === "approve" ? "success" : "warning"
+                );
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showNotification("Xatolik yuz berdi!", "danger");
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            showNotification("Xatolik yuz berdi!", "danger");
+        })
+        .finally(() => {
+            submitBtn.classList.remove("btn-loading");
+            submitBtn.disabled = false;
+        });
+});
 
-// Reset modal when closed
 window.jQuery("#approvalModal").on("hidden.bs.modal", () => {
-  document.getElementById("dean_comment").value = ""
-  currentEventId = null
-  currentAction = null
-})
+    document.getElementById("dean_comment").value = "";
+    currentEventId = null;
+    currentAction = null;
+});
 
-// Utility function for notifications
 function showNotification(message, type = "info") {
-  const notification = document.createElement("div")
-  notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
-  notification.style.cssText = "top: 20px; right: 20px; z-index: 9999; min-width: 300px;"
-  notification.innerHTML = `
+    const notification = document.createElement("div");
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = "top: 20px; right: 20px; z-index: 9999; min-width: 300px;";
+    notification.innerHTML = `
         ${message}
         <button type="button" class="close" data-dismiss="alert">
             <span>&times;</span>
         </button>
-    `
-
-  document.body.appendChild(notification)
-
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.parentNode.removeChild(notification)
-    }
-  }, 5000)
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
 }
 
-// Auto-refresh page every 5 minutes to check for new events
 setInterval(() => {
-  const currentUrl = new URL(window.location)
-  if (currentUrl.searchParams.get("status") === "pending" || !currentUrl.searchParams.get("status")) {
-    window.location.reload()
-  }
-}, 300000) // 5 minutes
-
-// Add CSRF token to all AJAX requests
-const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value
-if (csrfToken) {
-  // Add CSRF token to fetch requests
-  const originalFetch = window.fetch
-  window.fetch = (url, options = {}) => {
-    if (options.method && options.method.toUpperCase() !== "GET") {
-      options.headers = options.headers || {}
-      options.headers["X-CSRFToken"] = csrfToken
+    const currentUrl = new URL(window.location);
+    if (currentUrl.searchParams.get("status") === "pending" || !currentUrl.searchParams.get("status")) {
+        window.location.reload();
     }
-    return originalFetch(url, options)
-  }
+}, 300000);
+
+const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+if (csrfToken) {
+    const originalFetch = window.fetch;
+    window.fetch = (url, options = {}) => {
+        if (options.method && options.method.toUpperCase() !== "GET") {
+            options.headers = options.headers || {};
+            options.headers["X-CSRFToken"] = csrfToken;
+        }
+        return originalFetch(url, options);
+    };
 }
 
-// Declare jQuery variable
-const $ = window.jQuery
-
+const $ = window.jQuery;
 </script>
 {% endblock %}

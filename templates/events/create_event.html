@@ -488,8 +488,8 @@
                                         <h6>Rasm 1</h6>
                                     </div>
                                     <div class="photo-upload-area">
-                                        <input type="file" name="photos" accept="image/*" class="photo-input">
-                                        <label class="photo-label">
+                                        <input type="file" name="photos" accept="image/*" class="photo-input" id="photoInput1">
+                                        <label for="photoInput1" class="photo-label">
                                             <i class="fas fa-camera"></i>
                                             <span>Rasm tanlang</span>
                                             <small>Fayl tanlanmagan</small>
@@ -516,14 +516,14 @@
 
                     <!-- Submit button -->
                     <div class="form-footer">
-                        <a href="{% url 'event_list' %}" class="btn btn-secondary mr-3">
-                            <i class="fas fa-arrow-left"></i> Orqaga
-                        </a>
-                        <button type="submit" class="submit-btn" id="submitBtn">
-                            <i class="fas fa-save"></i>
-                            Tadbirni saqlash
-                        </button>
-                    </div>
+                      <a href="{% url 'event_list' %}" class="btn btn-secondary mr-3">
+                          <i class="fas fa-arrow-left"></i> Orqaga
+                      </a>
+                      <button type="submit" class="submit-btn" id="submitBtn">
+                          <i class="fas fa-save"></i>
+                          Tadbirni saqlash
+                      </button>
+                  </div>
                 </form>
             </div>
         </div>
@@ -537,6 +537,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   let photoCounter = 1
   const maxPhotos = 10
+  let formSubmitted = false; // Yangi o'zgaruvchi: forma submit qilinganligini kuzatish uchun
 
   // Initialize first photo
   initializePhotoInput(1)
@@ -565,8 +566,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <h6>Rasm ${photoCounter}</h6>
       </div>
       <div class="photo-upload-area">
-        <input type="file" name="photos" accept="image/*" class="photo-input">
-        <label class="photo-label">
+        <input type="file" name="photos" accept="image/*" class="photo-input" id="photoInput${photoCounter}">
+        <label for="photoInput${photoCounter}" class="photo-label">
           <i class="fas fa-camera"></i>
           <span>Rasm tanlang</span>
           <small>Fayl tanlanmagan</small>
@@ -588,11 +589,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function initializePhotoInput(index) {
     const photoItem = document.querySelector(`[data-photo-index="${index}"]`)
+    if (!photoItem) return;
+    
     const input = photoItem.querySelector(".photo-input")
+    const label = photoItem.querySelector(".photo-label")
 
-    input.addEventListener("change", (e) => {
-      handlePhotoUpload(e, photoItem)
-    })
+    if (input && label) {
+      input.addEventListener("change", (e) => {
+        handlePhotoUpload(e, photoItem)
+      })
+      
+      // Labelga input ID sini bog'lab qo'yish
+      if (!label.getAttribute('for')) {
+        label.setAttribute('for', input.id);
+      }
+    }
   }
 
   function handlePhotoUpload(e, photoItem) {
@@ -616,7 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Update label text
-      const fileName = file.name
+      const fileName = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
       label.querySelector("small").textContent = fileName
       label.querySelector("span").textContent = "Fayl tanlandi"
 
@@ -687,6 +698,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const header = item.querySelector(".photo-upload-header h6")
       if (header) {
         header.textContent = `Rasm ${newIndex}`
+      }
+      
+      // Yangilangan input va label ID lari
+      const input = item.querySelector('.photo-input');
+      const label = item.querySelector('.photo-label');
+      if (input && label) {
+        input.id = `photoInput${newIndex}`;
+        label.setAttribute('for', `photoInput${newIndex}`);
       }
     })
     photoCounter = photoItems.length
@@ -761,6 +780,9 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.classList.add("loading")
     submitBtn.disabled = true
 
+    // Forma submit bo'layotganligini belgilash
+    formSubmitted = true;
+
     // Submit form
     this.submit()
   })
@@ -781,7 +803,8 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   window.addEventListener("beforeunload", (e) => {
-    if (formChanged) {
+    // Agar forma allaqachon submit qilingan bo'lsa, ogohlantirishni ko'rsatma
+    if (formChanged && !formSubmitted) {
       e.preventDefault()
       e.returnValue = ""
     }

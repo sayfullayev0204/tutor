@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 from .models import Event, EventPhoto
+import datetime
 
 @login_required
 def event_list(request):
@@ -53,12 +54,13 @@ def event_list(request):
     }
     return render(request, 'events/event_list.html', context)
 
+
 @login_required
 def create_event(request):
     """Yangi tadbir yaratish"""
     if not request.user.is_tutor():
         messages.error(request, "Faqat tutorlar tadbir yaratishi mumkin!")
-        return redirect('events:event_list')
+        return redirect('event_list')
     
     if request.method == 'POST':
         try:
@@ -66,7 +68,7 @@ def create_event(request):
             title = request.POST.get('title', '').strip()
             description = request.POST.get('description', '').strip()
             category = request.POST.get('category')
-            event_date = request.POST.get('event_date')
+            event_date_str = request.POST.get('event_date')
             location = request.POST.get('location', '').strip()
             participants_count = request.POST.get('participants_count')
             
@@ -79,8 +81,18 @@ def create_event(request):
                 messages.error(request, "Tadbir haqida ma'lumot kiriting!")
                 return render(request, 'events/create_event.html')
             
-            if not event_date:
+            if not event_date_str:
                 messages.error(request, "Tadbir sanasini tanlang!")
+                return render(request, 'events/create_event.html')
+            
+            # Timezone bilan datetime yaratish
+            try:
+                # Naive datetime ni o'qib olish
+                naive_datetime = datetime.datetime.strptime(event_date_str, '%Y-%m-%dT%H:%M')
+                # Timezone qo'shish
+                event_date = timezone.make_aware(naive_datetime)
+            except ValueError:
+                messages.error(request, "Noto'g'ri sana formati!")
                 return render(request, 'events/create_event.html')
             
             if not location:
@@ -106,7 +118,7 @@ def create_event(request):
                 title=title,
                 description=description,
                 category=category,
-                event_date=event_date,
+                event_date=event_date,  # Timezone bilan datetime
                 location=location,
                 organizer=request.user,
                 participants_count=int(participants_count)
@@ -123,7 +135,7 @@ def create_event(request):
                 )
             
             messages.success(request, f"Tadbir muvaffaqiyatli yaratildi! {len(photos)} ta rasm yuklandi. Dekan tomonidan ko'rib chiqilishini kuting.")
-            return redirect('events:event_detail', event_id=event.id)
+            return redirect('event_detail', event_id=event.id)
             
         except Exception as e:
             messages.error(request, f"Xatolik yuz berdi: {str(e)}")
@@ -139,12 +151,12 @@ def event_detail(request, event_id):
     if request.user.is_tutor():
         if event.organizer != request.user:
             messages.error(request, "Bu tadbirga kirish huquqingiz yo'q!")
-            return redirect('events:event_list')
+            return redirect('event_list')
     elif request.user.is_dean():
         # Dekan o'z fakultetidagi tadbirlarni ko'ra oladi
         if event.organizer.faculty != request.user.faculty:
             messages.error(request, "Bu tadbirga kirish huquqingiz yo'q!")
-            return redirect('events:dean_events')
+            return redirect('dean_events')
     else:
         messages.error(request, "Bu sahifaga kirish huquqingiz yo'q!")
         return redirect('dashboard')

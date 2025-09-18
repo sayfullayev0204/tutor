@@ -1,66 +1,37 @@
 {% extends 'base.html' %}
-
-{% block title %}Rektor Davomad - {{ block.super }}{% endblock %}
-
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Davomad - Barcha Fakultetlar</h1>
-    <p class="text-gray-600">Bugungi sana: {{ current_date|date:"d.m.Y" }}</p>
-</div>
-
-<div class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-xl font-semibold mb-4">Fakultetlar</h2>
+<div class="container">
+    <h2>Rector Attendance Dashboard</h2>
+    <p>Welcome, {{ user.get_full_name }} | Date: {{ current_date }}</p>
     
-    {% if faculties_with_stats %}
-        <div class="grid gap-4">
-            {% for item in faculties_with_stats %}
-                <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-lg font-medium">{{ item.faculty.name }}</h3>
-                            <p class="text-gray-600">Dekan: {{ item.faculty.dean.get_full_name }}</p>
-                        </div>
-                        
-                        <div class="flex items-center space-x-4">
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-blue-600">{{ item.total_groups }}</div>
-                                <div class="text-xs text-gray-500">Jami</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-green-600">{{ item.taken_today }}</div>
-                                <div class="text-xs text-gray-500">Qabul qilingan</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-orange-600">{{ item.pending }}</div>
-                                <div class="text-xs text-gray-500">Kutilmoqda</div>
-                            </div>
-                            <a href="{% url 'faculty_groups' item.faculty.id %}" 
-                               class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-                                <i class="fas fa-eye mr-1"></i>
-                                Ko'rish
-                            </a>
-                        </div>
-                    </div>
-                    
-                     Progress bar for completion 
-                    <div class="mt-3">
-                        <div class="flex justify-between text-sm text-gray-600 mb-1">
-                            <span>Davomad holati</span>
-                            <span>{{ item.taken_today }}/{{ item.total_groups }}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full" 
-                                 style="width: {% if item.total_groups > 0 %}{{ item.taken_today|floatformat:0|mul:100|div:item.total_groups }}{% else %}0{% endif %}%"></div>
-                        </div>
-                    </div>
-                </div>
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                {{ message }}
             {% endfor %}
         </div>
-    {% else %}
-        <div class="text-center py-8">
-            <i class="fas fa-university text-gray-400 text-4xl mb-4"></i>
-            <p class="text-gray-600">Fakultetlar topilmadi.</p>
-        </div>
     {% endif %}
+    
+    <h3>Faculty Attendance Overview</h3>
+    {% for item in faculties_with_stats %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>{{ item.faculty.name }}</h4>
+            </div>
+            <div class="card-body">
+                <p>Total Groups: {{ item.total_groups }}</p>
+                {% for period in item.period_stats %}
+                    <p>
+                        {{ period.period_name }}:
+                        Taken: {{ period.taken_today }} |
+                        Pending: {{ period.pending }}
+                    </p>
+                {% endfor %}
+                <a href="{% url 'faculty_groups' faculty_id=item.faculty.id %}" class="btn btn-primary">View Groups</a>
+            </div>
+        </div>
+    {% empty %}
+        <p>No faculties available.</p>
+    {% endfor %}
 </div>
 {% endblock %}

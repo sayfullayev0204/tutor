@@ -101,62 +101,6 @@
                 </div>
             </div>
             
-            <!-- Renting Students Table -->
-            <div class="card mt-4">
-                <div class="card-header text-white">
-                    <h5 class="mb-0"><i class="fas fa-home me-2"></i>Ijara xonadonida yashovchi talabalar</h5>
-                </div>
-                <div class="card-body">
-                    {% if renting_students %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>F.I.O</th>
-                                        <th>Guruh</th>
-                                        <th>Manzil</th>
-                                        <th>Amallar</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for student in renting_students %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                        <span class="text-white fw-bold">{{ student.first_name|first }}{{ student.last_name|first }}</span>
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-medium">{{ student.full_name }}</div>
-                                                        <small class="text-muted">{{ student.get_gender_display }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ student.group.name }}</td>
-                                            <td>{{ student.address|truncatechars:30 }}</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{% url 'create_inspection' student.id %}" class="btn btn-outline-success btn-sm">
-                                                        <i class="fas fa-clipboard-check"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-home fa-2x text-muted mb-3"></i>
-                            <p class="text-muted">Ijara xonadonida yashovchi talabalar yo'q</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
         </div>
         
         <!-- Sidebar -->
